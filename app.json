@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "my-expo-app",
-    "slug": "my-expo-app",
+    "name": "Threads",
+    "slug": "threadstr",
     "version": "1.0.0",
-    "scheme": "my-expo-app",
+    "scheme": "threads",
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -29,14 +29,21 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.pablof7z.myexpoapp"
+      "bundleIdentifier": "com.pablof7z.threads",
+      "buildNumber": "3"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.pablof7z.myexpoapp"
-    }
+      "package": "com.pablof7z.threads"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "003634e3-064a-4ee3-8a1a-841dcc91b515"
+      }
+    },
+    "owner": "pablof7z"
   }
 }

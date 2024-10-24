@@ -35,7 +35,6 @@ const TIMESTAMP_CONTAINER_STYLE = {
 };
 
 export default function ThreadItem({ thread, onPress, index, target }: ThreadItemProps) {
-    console.log('thread item', thread, index);
     const { colors } = useColorScheme();
 
     const { ndk } = useNDK();

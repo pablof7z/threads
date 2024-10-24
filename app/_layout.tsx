@@ -32,7 +32,7 @@ export default function RootLayout() {
                 style={isDarkColorScheme ? 'light' : 'dark'}
             />
             <NDKProvider
-                explicitRelayUrls={['ws://localhost:2929', 'wss://relays.groups.nip29.com', 'wss://relay.primal.net', 'wss:/purplepag.es', 'wss://f7z.io', 'wss://relay.damus.io', 'wss://relay.nostr.watch']}
+                explicitRelayUrls={['ws://localhost:2929', 'wss://relays.groups.nip29.com', 'wss://relay.0xchat.com', 'wss://relay.primal.net', 'wss:/purplepag.es', 'wss://f7z.io', 'wss://relay.damus.io', 'wss://relay.nostr.watch']}
                 cacheAdapter={new NDKCacheAdapterSqlite("nutsack")}
             >
                 <GestureHandlerRootView style={{ flex: 1 }}>

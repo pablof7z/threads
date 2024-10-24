@@ -3,7 +3,7 @@ import { NDKArticle, NDKSimpleGroupMetadata } from '@nostr-dev-kit/ndk';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useMemo } from 'react';
-import { Platform, ScrollView, View } from 'react-native';
+import { Dimensions, Platform, View } from 'react-native';
 
 import { Button } from '~/components/nativewindui/Button';
 import {
@@ -21,6 +21,7 @@ import { Text } from '~/components/nativewindui/Text';
 import { useColorScheme } from '~/lib/useColorScheme';
 
 export default function GroupCard({ groupMetadata }: { groupMetadata: NDKSimpleGroupMetadata }) {
+    console.log('groupMetadata', groupMetadata);
     const filters = useMemo(() => [{ kinds: [30023], "#h": [groupMetadata.dTag] }], [groupMetadata.dTag]);
     const opts = useMemo(() => ({ closeOnEose: false, klass: NDKArticle }), []);
 
@@ -29,9 +30,9 @@ export default function GroupCard({ groupMetadata }: { groupMetadata: NDKSimpleG
     console.log('recentContent', recentContent.length);
     
     return (
-        <>
+        <View style={{ width: Dimensions.get("screen").width, maxWidth: 300 }}>
             <CardContentSpecific image={groupMetadata.picture} title={groupMetadata.name} subtitle={groupMetadata.about} recentContent={recentContent} />
-        </>
+        </View>
     );
 }
 
@@ -43,8 +44,17 @@ interface CardContentSpecificProps {
 }
 
 const CardContentSpecific: React.FC<CardContentSpecificProps> = ({ image, title, subtitle, recentContent }) => {
+    const uniquedContent = useMemo(() => {
+        const seenIds = new Set<string>();
+        return recentContent.filter((content) => {
+            if (seenIds.has(content.id)) return false;
+            seenIds.add(content.id);
+            return true;
+        });
+    }, [recentContent]);
+  
     return (
-        <Card className="min-h-[400px]">
+        <Card style={{ flex: 1, height: 300 }} className="min-h-[300px]">
             <CardImage
                 source={{
                     uri: image,
@@ -60,7 +70,7 @@ const CardContentSpecific: React.FC<CardContentSpecificProps> = ({ image, title,
 
             {recentContent.length > 0 && (
                 <CardFooter style={Platform.select({ ios: { backgroundColor: '#0E1724EE' } })}>
-                    {recentContent.map(article => (
+                    {uniquedContent.slice(0, 1).map(article => (
                         <View className="flex-row items-center gap-4">
                             {article.image && (
                                 <Image
