@@ -31,7 +31,7 @@ const AvatarGroup: React.FC<AvatarGroupProps> = ({ events, pubkeys, avatarSize, 
     }, [pubkeyCounts, pubkeys]);
 
     return (
-        <View className="flex flex-row w-full">
+        <View className="flex flex-row">
             {sortedPubkeys.slice(0, threshold).map((pubkey, index) => (
                 <User.Profile key={pubkey} pubkey={pubkey}>
                     <User.Avatar

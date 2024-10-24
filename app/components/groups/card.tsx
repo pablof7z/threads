@@ -64,8 +64,9 @@ const CardContentSpecific: React.FC<CardContentSpecificProps> = ({ image, title,
                 linearGradientColors={Platform.select({
                     ios: ['transparent', '#0E172488', '#0E1724EE'],
                 })}
-                className="ios:flex-col-reverse ios:gap-3 gap-1">
-                <CardTitle className="ios:text-white pr-8">{title}</CardTitle>
+                className="ios:flex-col-reverse ios:gap-1 gap-1">
+                <CardSubtitle numberOfLines={1} className="ios:text-white">{subtitle}</CardSubtitle>
+                <CardTitle className="ios:text-white pr-8 text-2xl" numberOfLines={1}>{title}</CardTitle>
             </CardContent>
 
             {recentContent.length > 0 && (
@@ -79,17 +80,9 @@ const CardContentSpecific: React.FC<CardContentSpecificProps> = ({ image, title,
                                 />
                             )}
                             <View className="flex-1 pr-4">
-                            <Text variant="subhead" className="pr-5 font-semibold ios:text-white">
+                            <Text variant="subhead" numberOfLines={2} className="pr-5 font-semibold ios:text-white">
                                 {article.title}
                             </Text>
-                            <CardDescription numberOfLines={1} variant="subhead" className="opacity-70">
-                                {article.summary}
-                            </CardDescription>
-                            </View>
-                            <View className="ios:items-center w-20">
-                                <Button variant="tonal" className="ios:px-4 ios:rounded-full ios:py-0.5">
-                                    <Text>View</Text>
-                                </Button>
                             </View>
                         </View>
                     ))}

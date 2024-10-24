@@ -44,7 +44,7 @@ import { useSubscribe } from '@/ndk-expo';
 import { useCallback, useMemo, useState } from 'react';
 import { getReplyTag, getRootTag, NDKEvent, NDKEventId } from '@nostr-dev-kit/ndk';
 import EventContent from '@/ndk-expo/components/event/content';
-import AvatarGroup from '../components/AvatarGroup';
+import AvatarGroup from "@/ndk-expo/components/user/AvatarGroup";
 
 const ME = 'Alice';
 
@@ -66,8 +66,6 @@ const SPRING_CONFIG = {
   restSpeedThreshold: 0.01,
 };
 
-const SCREEN_OPTIONS = { header };
-
 // Note: For few messages to start at top, use a FlatList instead of the FlashList
 // Add `contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}` to the FlatList (it is not possible with FlashList atm)
 
@@ -82,7 +80,7 @@ export default function ChatIos() {
     const { eventId } = useLocalSearchParams();
 
     const filters = useMemo(() => [
-        { ids: [eventId] }, { kinds: [1], "#e": [eventId] }
+        { kinds: [1],ids: [eventId] }, { kinds: [1], "#e": [eventId] }
     ], [eventId]);
     const { events } = useSubscribe({filters});
     
@@ -137,6 +135,8 @@ export default function ChatIos() {
         
     }, [events]);
 
+    const rootEvent = useMemo(() => messages.find((m) => m.id === eventId)?.event, [messages, eventId]);
+
     const pan = Gesture.Pan()
         .minDistance(10)
         .onBegin((evt) => { initialTouchLocation.value = { x: evt.x, y: evt.y }; })
@@ -186,7 +186,7 @@ export default function ChatIos() {
 
     return (
         <>
-            <Stack.Screen options={SCREEN_OPTIONS} />
+            <Stack.Screen options={{ header: () => <Header event={rootEvent} events={events} /> }} />
             <GestureDetector gesture={pan}>
                 <KeyboardAvoidingView
                     style={[
@@ -232,10 +232,6 @@ export default function ChatIos() {
     );
 }
 
-function header() {
-  return <Header />;
-}
-
 const HEADER_POSITION_STYLE: ViewStyle = {
   position: 'absolute',
   zIndex: 50,
@@ -249,53 +245,53 @@ const MOCK_CONVERSATION_INFO = {
   initials: 'GM',
 };
 
-function Header() {
-  const { colors } = useColorScheme();
-  const insets = useSafeAreaInsets();
-  if (Platform.OS === 'ios') {
-    return (
-      <BlurView
-        intensity={100}
-        style={[
-          HEADER_POSITION_STYLE,
-          {
-            paddingTop: insets.top,
-          },
-        ]}>
-        <View className="flex-row items-center justify-between px-4 pb-2">
-          <View className="flex-row items-center">
-            <Button variant="plain" size="icon" className="ios:justify-start" onPress={router.back}>
-              <Icon size={30} color={colors.primary} name="chevron-left" />
-              <View className="bg-primary h-5 w-5 -translate-x-4 items-center justify-center rounded-full">
-                <Text variant="caption2" className="text-center leading-[14px] text-white">
-                  3
-                </Text>
-              </View>
-            </Button>
-          </View>
-          <Pressable className="items-center gap-2 active:opacity-70">
-            <Avatar alt="avatar" className="h-12 w-12">
-              <AvatarFallback className="z-50">
-                <View className="opacity-90 dark:opacity-80">
-                  <Text
-                    className="dark:ios:text-white dark:text-background leading-6 text-white"
-                    variant="title3">
-                    {MOCK_CONVERSATION_INFO.initials}
-                  </Text>
+function Header({ event, events }: { event: NDKEvent | undefined, events: NDKEvent[] }) {
+    const { colors } = useColorScheme();
+    const insets = useSafeAreaInsets();
+    if (Platform.OS === 'ios') {
+        return (
+            <BlurView
+                intensity={100}
+                style={[
+                HEADER_POSITION_STYLE,
+                {
+                    paddingTop: insets.top,
+                },
+                ]}>
+                <View className="flex-row items-center justify-between px-4 pb-2">
+                <View className="flex-row items-center">
+                    <Button variant="plain" size="icon" className="ios:justify-start" onPress={router.back}>
+                    <Icon size={30} color={colors.primary} name="chevron-left" />
+                    <View className="bg-primary h-5 w-5 -translate-x-4 items-center justify-center rounded-full">
+                        <Text variant="caption2" className="text-center leading-[14px] text-white">
+                        3
+                        </Text>
+                    </View>
+                    </Button>
                 </View>
-              </AvatarFallback>
-            </Avatar>
-            <View className="flex-row items-center">
-              <Text variant="caption1">{MOCK_CONVERSATION_INFO.name}</Text>
-              <Icon name="chevron-right" size={12} color={colors.grey} />
-            </View>
-          </Pressable>
-          <Button variant="plain" size="icon" className="ios:justify-start">
-            <Icon size={28} color={colors.primary} name="video-outline" />
-          </Button>
-        </View>
-      </BlurView>
-    );
+                <View className="flex-row items-center justify-center w-auto">
+                    <AvatarGroup events={events} avatarSize={8} threshold={5} />
+                </View>
+                {/* {event && (
+                        <User.Profile pubkey={event.pubkey}>
+                            <Pressable className="items-center gap-2 active:opacity-70 flex-row">
+                                <User.Avatar className="w-8 h-8" />
+                        
+                                <View className="flex-row items-center">
+                                    <Text variant="caption1">
+                                        <User.Name />
+                                    </Text>
+                                    <Icon name="chevron-right" size={12} color={colors.grey} />
+                                </View>
+                            </Pressable>
+                        </User.Profile>
+                )} */}
+                <Button variant="plain" size="icon" className="ios:justify-start">
+                    <Icon size={28} color={colors.primary} name="video-outline" />
+                </Button>
+                </View>
+            </BlurView>
+        );
   }
 
   return (
