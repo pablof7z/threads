@@ -21,11 +21,10 @@ export default function ConversationsIosScreen() {
 
     const handleGroupPress = (group: NDKSimpleGroupMetadata) => {
         const groupId = group.dTag;
-        router.push(`/groups/view?groupId=${groupId}`);
+        router.push(`/groups/home?groupId=${groupId}`);
     };
 
     const handleMessagePress = (thread: Thread) => {
-        console.log('clicked ', thread);
         router.push(`/messages/thread?eventId=${thread.rootEventId}`);
     };
 
@@ -40,7 +39,8 @@ export default function ConversationsIosScreen() {
 
     return (
         <View style={{ flex: 1 }}>
-            <ScrollView 
+            <Text>app/index</Text>
+            {/* <ScrollView 
                 horizontal={true} // Enable horizontal scrolling
                 stickyHeaderHiddenOnScroll
                 showsHorizontalScrollIndicator={false}
@@ -51,14 +51,15 @@ export default function ConversationsIosScreen() {
                         <GroupCard groupMetadata={item} />
                     </View>
                 ))}
-            </ScrollView>
-            <List
+            </ScrollView> */}
+            {/* <List
                 data={listItems}
+                // data={groupItems}
                 contentInsetAdjustmentBehavior="automatic"
                 estimatedItemSize={88}
                 keyExtractor={(item: Thread | NDKSimpleGroupMetadata) => item.id}
                 renderItem={renderItemFn}
-            />
+            /> */}
         </View>
     );
 }

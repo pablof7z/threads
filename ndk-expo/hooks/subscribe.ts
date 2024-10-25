@@ -8,6 +8,12 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNDK } from './ndk';
 
+interface UseSubscribeParams {
+    filters: NDKFilter[];
+    opts?: NDKSubscriptionOptions;
+    relays?: string[];
+}
+
 export const useSubscribe = ({
     filters,
     opts = undefined,

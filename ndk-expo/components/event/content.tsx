@@ -23,7 +23,7 @@ const RenderPart: React.FC<{ part: string }> = ({ part }) => {
         )
     }
     
-    const entity = part.match(/nostr:(.*)/)?.[1];
+    const entity = part.match(/nostr:([a-zA-Z0-9]+)/)?.[1];
     if (!entity) {
         return <Text>{part}</Text>
     }
@@ -36,7 +36,14 @@ const RenderPart: React.FC<{ part: string }> = ({ part }) => {
             </User.Profile>
         )
     } else if (entity.startsWith('nprofile')) {
-        const { data: { pubkey } } = nip19.decode(entity) as { data: { pubkey: string } };
+        let pubkey: string | undefined;
+        try {
+            const {data} = nip19.decode(entity) as { data: { pubkey: string } };
+            pubkey = data.pubkey;
+        } catch (e) {
+            console.log({entity, e});
+            return <Text>{entity.substring(0, 6)}...</Text>
+        }
         
         return (
             <User.Profile pubkey={pubkey}>

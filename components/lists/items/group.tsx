@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import { ListItem, ListRenderItemInfo } from '~/components/nativewindui/List';
+import { ListItem } from '~/components/nativewindui/List';
 import { Text } from '~/components/nativewindui/Text';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { useSubscribe } from '@/ndk-expo';

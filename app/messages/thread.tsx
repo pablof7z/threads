@@ -45,6 +45,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { getReplyTag, getRootTag, NDKEvent, NDKEventId } from '@nostr-dev-kit/ndk';
 import EventContent from '@/ndk-expo/components/event/content';
 import AvatarGroup from "@/ndk-expo/components/user/AvatarGroup";
+import ChatBubble from '../components/chat/ChatBubble';
 
 const ME = 'Alice';
 
@@ -214,7 +215,7 @@ export default function ChatIos() {
                                 typeof nextMessage !== 'string' ? nextMessage?.sender === item.sender : false;
 
                             return (
-                                <ChatBubble
+                                <ChatBubble2
                                     isSameNextSender={isSameNextSender}
                                     item={item}
                                     replies={replies.get(item.id)}
@@ -365,7 +366,7 @@ const CONTEXT_MENU_ITEMS = [
   createContextItem({ actionKey: 'copy', title: 'Copy', icon: { name: 'clipboard-outline' } }),
 ];
 
-function ChatBubble({
+export function ChatBubble2({
     item,
     isSameNextSender,
     translateX,
@@ -795,7 +796,7 @@ function Composer({
   );
 }
 
-type MockMessage = {
+export type MockMessage = {
   id: string;
   sender: string;
   text: string;

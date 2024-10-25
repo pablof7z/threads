@@ -1,5 +1,6 @@
 import { useSubscribe } from '@/ndk-expo';
-import { NDKArticle, NDKSimpleGroupMetadata } from '@nostr-dev-kit/ndk';
+import AvatarGroup from '@/ndk-expo/components/user/AvatarGroup';
+import { NDKArticle, NDKEvent, NDKSimpleGroupMetadata } from '@nostr-dev-kit/ndk';
 import { Image } from 'expo-image';
 import { Stack } from 'expo-router';
 import { useMemo } from 'react';
@@ -21,37 +22,50 @@ import { Text } from '~/components/nativewindui/Text';
 import { useColorScheme } from '~/lib/useColorScheme';
 
 export default function GroupCard({ groupMetadata }: { groupMetadata: NDKSimpleGroupMetadata }) {
-    console.log('groupMetadata', groupMetadata);
-    const filters = useMemo(() => [{ kinds: [30023], "#h": [groupMetadata.dTag] }], [groupMetadata.dTag]);
-    const opts = useMemo(() => ({ closeOnEose: false, klass: NDKArticle }), []);
+    const filters = useMemo(() => [
+        { kinds: [9, 10, 11, 12], limit: 20, "#h": [groupMetadata.dTag] },
+        { kinds: [30023], limit: 3, "#h": [groupMetadata.dTag] },
+    ], [groupMetadata.dTag]);
+    const opts = useMemo(() => ({ closeOnEose: false }), []);
 
     const { events: recentContent} = useSubscribe({filters, opts});
 
-    console.log('recentContent', recentContent.length);
+    const articles = useMemo(() => recentContent.filter((event) => event.kind === 30023), [recentContent]);
+    const posts = useMemo(() => recentContent.filter((event) => [9, 10, 11, 12].includes(event.kind!)), [recentContent]);
+    const pubkeys = useMemo(() => new Set(recentContent.map((event) => event.pubkey)), [recentContent]);
     
     return (
         <View style={{ width: Dimensions.get("screen").width, maxWidth: 300 }}>
-            <CardContentSpecific image={groupMetadata.picture} title={groupMetadata.name} subtitle={groupMetadata.about} recentContent={recentContent} />
+            <CardContentSpecific
+                image={groupMetadata.picture}
+                title={groupMetadata.name}
+                subtitle={groupMetadata.about}
+                articles={articles}
+                posts={posts}
+                pubkeys={pubkeys}
+            />
         </View>
     );
 }
 
 interface CardContentSpecificProps {
-    image: string;
-    title: string;
-    subtitle: string;
-    recentContent: NDKArticle[];
+    image?: string;
+    title?: string;
+    subtitle?: string;
+    articles: NDKArticle[];
+    posts: NDKEvent[];
+    pubkeys: Set<string>;
 }
 
-const CardContentSpecific: React.FC<CardContentSpecificProps> = ({ image, title, subtitle, recentContent }) => {
+const CardContentSpecific: React.FC<CardContentSpecificProps> = ({ image, title, subtitle, articles, posts, pubkeys }) => {
     const uniquedContent = useMemo(() => {
         const seenIds = new Set<string>();
-        return recentContent.filter((content) => {
+        return articles.filter((content) => {
             if (seenIds.has(content.id)) return false;
             seenIds.add(content.id);
             return true;
         });
-    }, [recentContent]);
+    }, [articles]);
   
     return (
         <Card style={{ flex: 1, height: 300 }} className="min-h-[300px]">
@@ -65,11 +79,12 @@ const CardContentSpecific: React.FC<CardContentSpecificProps> = ({ image, title,
                     ios: ['transparent', '#0E172488', '#0E1724EE'],
                 })}
                 className="ios:flex-col-reverse ios:gap-1 gap-1">
+                <AvatarGroup events={posts} avatarSize={8} threshold={5} />
                 <CardSubtitle numberOfLines={1} className="ios:text-white">{subtitle}</CardSubtitle>
                 <CardTitle className="ios:text-white pr-8 text-2xl" numberOfLines={1}>{title}</CardTitle>
             </CardContent>
 
-            {recentContent.length > 0 && (
+            {articles.length > 0 && (
                 <CardFooter style={Platform.select({ ios: { backgroundColor: '#0E1724EE' } })}>
                     {uniquedContent.slice(0, 1).map(article => (
                         <View className="flex-row items-center gap-4">
