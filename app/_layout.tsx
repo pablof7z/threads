@@ -15,9 +15,7 @@ import { cn } from '~/lib/cn';
 import { useColorScheme, useInitialAndroidBarSync } from '~/lib/useColorScheme';
 import { NAV_THEME } from '~/theme';
 import { NDKProvider, useNDK } from '~/ndk-expo';
-import { Text } from '@/components/nativewindui/Text';
-import { DrawerContent } from './(drawer)/_layout';
-import Drawer from 'expo-router/drawer';
+import { NDKWalletProvider } from '@/ndk-expo/providers/wallet';
 
 export {
   ErrorBoundary,
@@ -38,25 +36,27 @@ export default function RootLayout() {
                 explicitRelayUrls={['ws://localhost:2929', 'wss://relays.groups.nip29.com', 'wss://relay.0xchat.com', 'wss://relay.primal.net', 'wss:/purplepag.es', 'wss://f7z.io', 'wss://relay.damus.io', 'wss://relay.nostr.watch']}
                 cacheAdapter={new NDKCacheAdapterSqlite("nutsack")}
             >
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                    <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
-                        <NavThemeProvider value={NAV_THEME[colorScheme]}>
-                        <Stack
-                            screenOptions={{
-                                headerShown: true,
-                                headerTintColor: Platform.OS === 'ios' ? undefined : colors.foreground,
-                        }}>
-                            <Stack.Screen name="(home)/index" options={{
-                                headerShown: false,
-                            }} />
-                            <Stack.Screen name="relays" options={RELAYS_OPTIONS} />
-                            <Stack.Screen name="settings" options={SETTINGS_OPTIONS} />
-                            <Stack.Screen name="login" options={LOGIN_OPTIONS} />
-                        </Stack>
-                            
-                        </NavThemeProvider>
-                    </KeyboardProvider>
-                </GestureHandlerRootView>
+                <NDKWalletProvider>
+                    <GestureHandlerRootView style={{ flex: 1 }}>
+                        <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
+                            <NavThemeProvider value={NAV_THEME[colorScheme]}>
+                            <Stack
+                                screenOptions={{
+                                    headerShown: true,
+                                    headerTintColor: Platform.OS === 'ios' ? undefined : colors.foreground,
+                            }}>
+                                <Stack.Screen name="(home)/index" options={{
+                                    headerShown: false,
+                                }} />
+                                <Stack.Screen name="relays" options={RELAYS_OPTIONS} />
+                                <Stack.Screen name="settings" options={SETTINGS_OPTIONS} />
+                                <Stack.Screen name="login" options={LOGIN_OPTIONS} />
+                            </Stack>
+                                
+                            </NavThemeProvider>
+                        </KeyboardProvider>
+                    </GestureHandlerRootView>
+                </NDKWalletProvider>
             </NDKProvider>
         </>
     );

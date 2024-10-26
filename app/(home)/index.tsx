@@ -39,8 +39,7 @@ export default function ConversationsIosScreen() {
 
     return (
         <View style={{ flex: 1 }}>
-            <Text>app/(home)index</Text>
-            {/* <ScrollView 
+            <ScrollView 
                 horizontal={true} // Enable horizontal scrolling
                 stickyHeaderHiddenOnScroll
                 showsHorizontalScrollIndicator={false}
@@ -51,15 +50,15 @@ export default function ConversationsIosScreen() {
                         <GroupCard groupMetadata={item} />
                     </View>
                 ))}
-            </ScrollView> */}
-            {/* <List
+            </ScrollView>
+            <List
                 data={listItems}
                 // data={groupItems}
                 contentInsetAdjustmentBehavior="automatic"
                 estimatedItemSize={88}
                 keyExtractor={(item: Thread | NDKSimpleGroupMetadata) => item.id}
                 renderItem={renderItemFn}
-            /> */}
+            />
         </View>
     );
 }
