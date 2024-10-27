@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useSubscribe } from '@/ndk-expo';
 import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColorScheme } from '~/lib/useColorScheme';
 import ChatIos from '../components/chat/chat';
 

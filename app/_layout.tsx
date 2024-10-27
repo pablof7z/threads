@@ -45,12 +45,12 @@ export default function RootLayout() {
                                     headerShown: true,
                                     headerTintColor: Platform.OS === 'ios' ? undefined : colors.foreground,
                             }}>
+                                <Stack.Screen name="auth/login" options={LOGIN_OPTIONS} />
                                 <Stack.Screen name="(home)/index" options={{
                                     headerShown: false,
                                 }} />
                                 <Stack.Screen name="relays" options={RELAYS_OPTIONS} />
                                 <Stack.Screen name="settings" options={SETTINGS_OPTIONS} />
-                                <Stack.Screen name="login" options={LOGIN_OPTIONS} />
                             </Stack>
                                 
                             </NavThemeProvider>

@@ -26,8 +26,6 @@ import Animated, {
 
 import { Avatar, AvatarFallback } from '~/components/nativewindui/Avatar';
 import { Button } from '~/components/nativewindui/Button';
-import { ContextMenu } from '~/components/nativewindui/ContextMenu';
-import { createContextItem } from '~/components/nativewindui/ContextMenu/utils';
 import { Checkbox } from '~/components/nativewindui/Checkbox';
 import { DropdownMenu } from '~/components/nativewindui/DropdownMenu';
 import { createDropdownItem } from '~/components/nativewindui/DropdownMenu/utils';
@@ -203,20 +201,6 @@ const SEARCH_BAR = {
   ),
 };
 
-const CONTEXT_MENU_ITEMS = [
-  createContextItem({
-    actionKey: 'hide-alerts',
-    title: 'Hide Alerts',
-    icon: { name: 'bell-outline' },
-  }),
-  createContextItem({
-    actionKey: 'delete',
-    title: 'Delete',
-    icon: { name: 'trash-can-outline', color: 'red' },
-    destructive: true,
-  }),
-];
-
 const TIME_STAMP_WIDTH = 96;
 
 const TEXT_STYLE: TextStyle = {
@@ -264,10 +248,6 @@ function MessageRow({
 
   return (
     <Swipeable isUnread={info.item.unread}>
-      <ContextMenu
-        items={CONTEXT_MENU_ITEMS}
-        iosRenderPreview={renderIosContextMenuPreview(info)}
-        materialAlign="center">
         <ListItem
           {...info}
           subTitleNumberOfLines={2}
@@ -331,7 +311,6 @@ function MessageRow({
             </>
           }
         />
-      </ContextMenu>
       <View style={TIMESTAMP_CONTAINER_STYLE} className="absolute right-8 top-1.5">
         <Text numberOfLines={1} variant="footnote" className="text-muted-foreground">
           {info.item.timestamp}
@@ -340,28 +319,6 @@ function MessageRow({
     </Swipeable>
   );
 }
-
-const renderIosContextMenuPreview = (info: { item: (typeof ITEMS)[number] }) => {
-  return () => {
-    return (
-      <View className="bg-card/60 dark:bg-muted/70 h-96 w-screen flex-1 rounded-lg p-4">
-        <View className="pb-4">
-          <Text variant="caption2" className="text-center">
-            iMessage
-          </Text>
-          <Text variant="caption2" className="text-center">
-            {info.item.timestamp}
-          </Text>
-        </View>
-        <View className="pr-10">
-          <View style={{ borderCurve: 'circular' }} className="bg-card rounded-2xl p-3">
-            <Text>{info.item.subTitle}</Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
-};
 
 function getInitials(name: string): string {
   const nameParts = name.trim().split(/\s+/);

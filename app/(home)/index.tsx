@@ -7,11 +7,9 @@ import { NDKEvent, NDKSimpleGroupMetadata, NDKEventId } from '@nostr-dev-kit/ndk
 import { Thread } from '@/components/lists/items/thread';
 import { useGroupMetadata } from '../hooks/useGroups';
 import { useThreads } from '../hooks/useThreads';
-import { FlashList } from '@shopify/flash-list';
 import GroupCard from '../components/groups/card';
 import { List } from '@/components/nativewindui/List';
 import { Dimensions, View } from 'react-native';
-import { Text } from '@/components/nativewindui/Text';
 import { ScrollView } from 'react-native-gesture-handler';
 
 export default function ConversationsIosScreen() {

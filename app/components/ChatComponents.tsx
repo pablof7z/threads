@@ -1,32 +1,11 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable, Platform } from 'react-native';
 import Animated, { interpolate, SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 import { Text } from '~/components/nativewindui/Text';
 import { NDKEvent } from '@nostr-dev-kit/ndk';
 import { MockMessage } from '../messages/thread';
 import { useColorScheme } from '~/lib/useColorScheme';
-import { ContextMenuRef } from '@/components/nativewindui/ContextMenu/types';
-
-type ChatBubbleProps = {
-    item: {
-        id: string;
-        sender: string;
-        text: string;
-        date: string;
-        time: string;
-        event: NDKEvent;
-        reactions: {
-            like?: string[];
-            love?: string[];
-            dislike?: string[];
-            exclamation?: string[];
-            question?: string[];
-        };
-        attachments: { type: string; url: string }[];
-    };
-    isSameNextSender: boolean;
-    translateX: SharedValue<number>;
-};
+import { Image } from 'expo-image';
 
 export function ChatBubble({
     item,
@@ -39,8 +18,6 @@ export function ChatBubble({
     translateX: SharedValue<number>;
     replies: NDKEvent[] | undefined;
 }) {
-  const contextMenuRef = React.useRef<ContextMenuRef>(null);
-  const contextMenuRef2 = React.useRef<ContextMenuRef>(null);
   const { colors } = useColorScheme();
   const rootStyle = useAnimatedStyle(() => {
     return {
@@ -58,100 +35,6 @@ export function ChatBubble({
     };
   });
 
-  const renderAuxiliaryPreview = React.useCallback(() => {
-    function closeContextMenu() {
-      contextMenuRef.current?.dismissMenu?.();
-      contextMenuRef2.current?.dismissMenu?.();
-    }
-    return (
-      <View
-        className={cn(
-          'bg-card flex-row gap-1 rounded-full p-0.5',
-          Platform.OS === 'ios' && 'ios:bg-card/60 ios:dark:bg-border/70'
-        )}>
-        <Button
-          size="icon"
-          variant={item.reactions.love?.includes(ME) ? 'primary' : 'plain'}
-          onPress={closeContextMenu}
-          className="ios:rounded-full rounded-full">
-          <Icon
-            name="heart"
-            size={24}
-            color={item.reactions.love?.includes(ME) ? 'white' : colors.grey}
-          />
-        </Button>
-        <Button
-          size="icon"
-          variant={item.reactions.like?.includes(ME) ? 'primary' : 'plain'}
-          onPress={closeContextMenu}
-          className="ios:rounded-full rounded-full">
-          <Icon
-            ios={{ name: 'hand.thumbsup.fill' }}
-            materialIcon={{
-              type: 'MaterialCommunityIcons',
-              name: 'thumb-up',
-            }}
-            size={24}
-            color={item.reactions.like?.includes(ME) ? 'white' : colors.grey}
-          />
-        </Button>
-        <Button
-          size="icon"
-          variant={item.reactions.dislike?.includes(ME) ? 'primary' : 'plain'}
-          onPress={closeContextMenu}
-          className="ios:rounded-full rounded-full">
-          <Icon
-            ios={{ name: 'hand.thumbsdown.fill' }}
-            materialIcon={{
-              type: 'MaterialCommunityIcons',
-              name: 'thumb-down',
-            }}
-            size={24}
-            color={item.reactions.dislike?.includes(ME) ? 'white' : colors.grey}
-          />
-        </Button>
-        <Button
-          size="icon"
-          variant={item.reactions.exclamation?.includes(ME) ? 'primary' : 'plain'}
-          onPress={closeContextMenu}
-          className="ios:rounded-full rounded-full">
-          <Icon
-            name="exclamation"
-            size={24}
-            color={item.reactions.exclamation?.includes(ME) ? 'white' : colors.grey}
-          />
-        </Button>
-        <Button
-          size="icon"
-          variant={item.reactions.question?.includes(ME) ? 'primary' : 'plain'}
-          onPress={closeContextMenu}
-          className="ios:rounded-full rounded-full">
-          <Icon
-            ios={{ name: 'questionmark' }}
-            materialIcon={{
-              type: 'MaterialCommunityIcons',
-              name: 'comment-question-outline',
-            }}
-            size={24}
-            color={item.reactions.question?.includes(ME) ? 'white' : colors.grey}
-          />
-        </Button>
-      </View>
-    );
-  }, [colors, item.reactions]);
-
-  const auxiliaryPreviewPosition = React.useMemo(() => {
-    const textIsLessThan25 = item.text.length < 25;
-
-    return item.sender === ME
-      ? textIsLessThan25
-        ? 'end'
-        : 'start'
-      : textIsLessThan25
-        ? 'start'
-        : 'end';
-  }, [item.text, item.sender]);
-
   return (
     <View
       className={cn(
@@ -164,13 +47,6 @@ export function ChatBubble({
           <View
             className={cn('flex-row items-center gap-4', item.sender === ME && 'flex-row-reverse')}>
             <View>
-              <ContextMenu
-                ref={contextMenuRef}
-                style={{ borderRadius: 12 }}
-                auxiliaryPreviewPosition={auxiliaryPreviewPosition}
-                renderAuxiliaryPreview={renderAuxiliaryPreview}
-                items={CONTEXT_MENU_ITEMS}
-                onItemPress={({ actionKey }) => console.log(`${actionKey} pressed`)}>
                 <Pressable>
                   <Image
                     source={{ uri: item.attachments[0].url }}
@@ -178,42 +54,6 @@ export function ChatBubble({
                     borderRadius={12}
                   />
                 </Pressable>
-              </ContextMenu>
-              {item.reactions.like?.includes(ME) && (
-                <View
-                  className={cn(
-                    'bg-card dark:bg-background absolute -top-3 rounded-full p-px',
-                    item.sender === ME ? '-left-5' : '-right-5'
-                  )}>
-                  <View className="bg-primary rounded-full p-1">
-                    <Icon
-                      ios={{ name: 'hand.thumbsup.fill' }}
-                      materialIcon={{
-                        type: 'MaterialCommunityIcons',
-                        name: 'thumb-up',
-                      }}
-                      size={18}
-                      color="white"
-                    />
-                    {Platform.OS === 'ios' && (
-                      <>
-                        <View
-                          className={cn(
-                            'bg-primary absolute bottom-0 h-2 w-2 rounded-full',
-                            item.sender === ME ? 'left-0' : 'right-0'
-                          )}
-                        />
-                        <View
-                          className={cn(
-                            'bg-primary absolute -bottom-1 h-1 w-1 rounded-full',
-                            item.sender === ME ? '-left-1' : '-right-1'
-                          )}
-                        />
-                      </>
-                    )}
-                  </View>
-                </View>
-              )}
             </View>
             <Button
               size="icon"
@@ -263,13 +103,6 @@ export function ChatBubble({
               )}
             </View>
             <View>
-                <ContextMenu
-                    ref={contextMenuRef2}
-                    auxiliaryPreviewPosition={auxiliaryPreviewPosition}
-                    items={CONTEXT_MENU_ITEMS}
-                    style={{ borderRadius: 20 }}
-                    renderAuxiliaryPreview={renderAuxiliaryPreview}
-                    onItemPress={({ actionKey }) => console.log(`${actionKey} pressed`)}>
                     <Pressable onPress={() => router.push(`/messages/thread?eventId=${item.event.id}`)}>
                     <View
                         style={BORDER_CURVE}
@@ -288,42 +121,6 @@ export function ChatBubble({
                         </Text>
                     )}
                 </Pressable>
-              </ContextMenu>
-              {item.reactions.like?.includes(ME) && (
-                <View
-                  className={cn(
-                    'bg-card dark:bg-background absolute -top-3 rounded-full p-px',
-                    item.sender === ME ? '-left-5' : '-right-5'
-                  )}>
-                  <View className="bg-primary rounded-full p-1">
-                    <Icon
-                      ios={{ name: 'hand.thumbsup.fill' }}
-                      materialIcon={{
-                        type: 'MaterialCommunityIcons',
-                        name: 'thumb-up',
-                      }}
-                      size={18}
-                      color="white"
-                    />
-                    {Platform.OS === 'ios' && (
-                      <>
-                        <View
-                          className={cn(
-                            'bg-primary absolute bottom-0 h-2 w-2 rounded-full',
-                            item.sender === ME ? 'left-0' : 'right-0'
-                          )}
-                        />
-                        <View
-                          className={cn(
-                            'bg-primary absolute -bottom-1 h-1 w-1 rounded-full',
-                            item.sender === ME ? '-left-1' : '-right-1'
-                          )}
-                        />
-                      </>
-                    )}
-                  </View>
-                </View>
-              )}
 
               <View className="flex-row items-center gap-2">
                     <User.Profile pubkey={item.event.pubkey}>

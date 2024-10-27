@@ -16,6 +16,8 @@ const NDKProvider = ({
     const [ndk, setNDK] = useState<NDK>(new NDK(opts));
     const [currentUser, setCurrentUser] = useState<NDKUser | null>(null);
 
+    ndk.debug.enable = true;
+
     if (connect) {
         ndk.connect();
     }
