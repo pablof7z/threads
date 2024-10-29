@@ -2,20 +2,19 @@ import '../global.css';
 import 'expo-dev-client';
 import { ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { NDKCacheAdapterSqlite } from "@/ndk-expo";
-import { Icon } from '@roninoss/icons';
-import { Link, Stack, useNavigation } from 'expo-router';
+import { Link, router, Stack, useNavigation } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';  
-import { Platform, Pressable, View } from 'react-native';
-import * as User from '@/ndk-expo/components/user';
+import { Platform, View } from 'react-native';
 
 import { ThemeToggle } from '~/components/ThemeToggle';
-import { cn } from '~/lib/cn';
 import { useColorScheme, useInitialAndroidBarSync } from '~/lib/useColorScheme';
 import { NAV_THEME } from '~/theme';
-import { NDKProvider, useNDK } from '~/ndk-expo';
+import { NDKProvider } from '~/ndk-expo';
 import { NDKWalletProvider } from '@/ndk-expo/providers/wallet';
+import { Text } from '@/components/nativewindui/Text';
+import { Icon } from '@roninoss/icons';
 
 export {
   ErrorBoundary,
@@ -25,7 +24,7 @@ export default function RootLayout() {
     useInitialAndroidBarSync();
     const { colors } = useColorScheme();
     const { colorScheme, isDarkColorScheme } = useColorScheme();
-
+    
     return (
         <>
             <StatusBar
@@ -42,15 +41,41 @@ export default function RootLayout() {
                             <NavThemeProvider value={NAV_THEME[colorScheme]}>
                             <Stack
                                 screenOptions={{
+                                    animation: 'ios',
+                                    title: "Home",
                                     headerShown: true,
                                     headerTintColor: Platform.OS === 'ios' ? undefined : colors.foreground,
                             }}>
                                 <Stack.Screen name="auth/login" options={LOGIN_OPTIONS} />
                                 <Stack.Screen name="(home)/index" options={{
                                     headerShown: false,
+                                    title: 'Threads',
                                 }} />
                                 <Stack.Screen name="relays" options={RELAYS_OPTIONS} />
+                                <Stack.Screen name="(wallet)" options={{
+                                    headerShown: true,
+                                    headerTitle: () => <Text>Wallet</Text>,
+                                    headerRight: () => (
+                                        <Link href="/(wallets)">
+                                            <Icon name="inbox-multiple-outline" size={24} color={colors.foreground} />
+                                        </Link>
+                                    )
+                                }} />
+                                <Stack.Screen name="(wallets)" options={{
+                                    headerShown: true,
+                                    headerTitle: () => <Text>Wallets</Text>,
+                                    headerRight: () => (
+                                        <Link href="/new-wallet">
+                                            <Icon name="plus-box-outline" size={24} color={colors.foreground} />
+                                        </Link>
+                                    )
+                                }} />
                                 <Stack.Screen name="settings" options={SETTINGS_OPTIONS} />
+                                <Stack.Screen name="new-wallet" options={{
+                                    presentation: 'modal',
+                                    title: 'New Wallet',
+                                    animation: 'fade_from_bottom',
+                                }} />
                             </Stack>
                                 
                             </NavThemeProvider>
@@ -61,12 +86,6 @@ export default function RootLayout() {
         </>
     );
 }
-
-const SCREEN_OPTIONS = {
-  animation: 'ios', // for android
-} as const;
-
-
 
 const SETTINGS_OPTIONS = {
   presentation: 'modal',

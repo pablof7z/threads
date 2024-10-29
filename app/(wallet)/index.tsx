@@ -1,10 +1,12 @@
 import React, { useEffect, useCallback, useState } from "react";
 import { StyleSheet, TouchableOpacity, Alert, ScrollView, View } from "react-native";
 import { useNDKWallet } from "@/ndk-expo/providers/wallet";
-import { useRouter } from "expo-router";
-import WalletView from "./WalletView";
+import { Stack, useRouter } from "expo-router";
 import { useNDK } from "@/ndk-expo";
 import { Text } from "@/components/nativewindui/Text";
+import { NDKCashuWallet } from "@nostr-dev-kit/ndk-wallet";
+import Wallet from "@/components/wallet";
+import { SafeAreaFrameContext, SafeAreaView } from "react-native-safe-area-context";
 
 export default function WalletScreen() {
     const { currentUser } = useNDK();
@@ -26,10 +28,7 @@ export default function WalletScreen() {
 
     useEffect(() => {
         if (!currentUser) {
-            router.back();
-            router.push({
-                pathname: '/login',
-            });
+            // router.back();
         }
     }, [currentUser, router]);
 
@@ -37,33 +36,21 @@ export default function WalletScreen() {
         return null;
     }
 
-    function handleSend() {
-        router.push({
-            pathname: '/wallet/send',
-        });
-    }
-
-    const handleReceive = () => {
-        router.push({
-            pathname: '/wallet/receive',
-        });
-    };
-
     return (
-        <View style={styles.container}>
-            {defaultWallet ? (
-                <WalletView
-                    wallet={defaultWallet}
-                    onSend={handleSend}
-                    onReceive={handleReceive} // Added onReceive prop
+        <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-card">
+            <View style={styles.container} className='bg-card'>
+                {defaultWallet ? (
+                <Wallet
+                    wallet={defaultWallet as NDKCashuWallet}
                 />
             ) : (
-                <TouchableOpacity style={styles.button} onPress={() => router.push({ pathname: '/wallet/new' })}>
+                <TouchableOpacity style={styles.button} onPress={() => router.push({ pathname: '/new-wallet' })}>
                     <Text style={styles.buttonText}>Create New Wallet</Text>
                 </TouchableOpacity>
             )}
             
-        </View>
+            </View>
+        </SafeAreaView>
     );
 }
 
@@ -84,16 +71,5 @@ const styles = StyleSheet.create({
     walletContainer: {
         marginBottom: 20,
     },
-    button: {
-        backgroundColor: "#007AFF",
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 10,
-        alignItems: "center",
-    },
-    buttonText: {
-        color: "white",
-        fontSize: 16,
-        fontWeight: "bold",
-    },
+    
 });

@@ -8,18 +8,20 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNDK } from './ndk';
 
+type NDKEventWithFrom<T> = NDKEvent & { from: (event: T) => Promise<T> };
+
 interface UseSubscribeParams {
-    filters: NDKFilter[];
-    opts?: NDKSubscriptionOptions;
+    filters: NDKFilter[] | null;
+    opts?: NDKSubscriptionOptions & { klass?: NDKEventWithFrom<any> };
     relays?: string[];
 }
 
-export const useSubscribe = ({
+export const useSubscribe = <T = NDKEvent>({
     filters,
     opts = undefined,
     relays = undefined,
 }: UseSubscribeParams) => {
-    const [events, setEvents] = useState<NDKEvent[]>([]);
+    const [events, setEvents] = useState<T[]>([]);
     const [eose, setEose] = useState(false);
     const { ndk } = useNDK();
     const subscriptionRef = useRef<NDKSubscription | undefined>();
@@ -33,17 +35,23 @@ export const useSubscribe = ({
     }, [ndk, relays]);
 
     const handleEvent = useCallback(
-        (event: NDKEvent) => {
+        async (event: NDKEvent) => {
             if (eventIds.current.has(event.id)) return;
+            const e = event;
+            if (opts?.klass) {
+                event = await opts.klass.from(event);
+            }
+
+            if (!event) {
+                console.warn(`No event on subscription: ${e.id}`);
+                console.log(e.rawEvent());
+                return;
+            }
 
             setEvents((prevEvents) => {
                 eventIds.current.add(event.id);
-
-                if (opts?.klass) {
-                    event = opts.klass.from(event);
-                }
-                
-                return [...prevEvents, event];
+                return [...prevEvents, event as T]
+                    .sort((a, b) => (b as NDKEvent).created_at! - (a as NDKEvent).created_at!);
             });
         },
         []

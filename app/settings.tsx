@@ -17,7 +17,7 @@ import {
 import { Text } from '~/components/nativewindui/Text';
 import { cn } from '~/lib/cn';
 import { useColorScheme } from '~/lib/useColorScheme';
-import { NDKUser } from '@nostr-dev-kit/ndk';
+import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 
 function ProfileItem(currentUser: NDKUser | null) {
     if (!currentUser) return null;
@@ -64,6 +64,8 @@ export default function SettingsIosStyleScreen() {
     ]
   }, [currentUser]);
 
+  const { ndk } = useNDK();
+
   
   return (
     <>
@@ -78,6 +80,7 @@ export default function SettingsIosStyleScreen() {
         keyExtractor={keyExtractor}
         sectionHeaderAsGap
       />
+      <Text>{(ndk?.signer as NDKPrivateKeySigner)?.privateKey}</Text>
     </>
   );
 }

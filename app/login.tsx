@@ -4,17 +4,19 @@ import { useNDK } from "@/ndk-expo";
 import { useRouter } from "expo-router";
 import { NDKPrivateKeySigner } from "@nostr-dev-kit/ndk";
 import { nip19 } from "nostr-tools";
-import { withPrivateKey, withPayload } from "@/ndk-expo/providers/ndk/signers";
+import { withPrivateKey, withPayload, withNip46 } from "@/ndk-expo/providers/ndk/signers";
 import { Text } from "@/components/nativewindui/Text";
 
 export default function LoginScreen() {
     const [payload, setPayload] = useState(
-        "nsec1f8j0luh0z2qyz7sd6p4xr9z7yt00wvragscldetd32fhe2yq9lysxg335s"
+        // "nsec1f8j0luh0z2qyz7sd6p4xr9z7yt00wvragscldetd32fhe2yq9lysxg335s"
+        "nsec1ffqlrnhhqd35688phhn5uazd3ulf4j753csks73rmrnx6u3myn0su06dxm"
     );
     const { ndk, login, currentUser } = useNDK();
     const router = useRouter();
 
     const handleLogin = async () => {
+        if (!ndk) return;
         try {
             login(withPayload(ndk, payload));
         } catch (error) {

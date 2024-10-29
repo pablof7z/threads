@@ -1,4 +1,5 @@
 import "@bacons/text-decoder/install";
+import "react-native-get-random-values";
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { Icon } from '@roninoss/icons';
 import { Link, Stack, useNavigation } from 'expo-router';
@@ -17,9 +18,10 @@ import {
 import { useColorScheme } from '~/lib/useColorScheme';
 import { cn } from "@/lib/cn";
 import { useNDK } from "@/ndk-expo";
+import { useNDKWallet } from "@/ndk-expo/providers/wallet";
+import { useEffect, useMemo } from "react";
 
 const INDEX_OPTIONS = {
-  headerLargeTitle: false,
   headerTitle: () => (
     <Link href="/relays" asChild>
       <Pressable className="opacity-80">
@@ -44,11 +46,11 @@ function UserIcon() {
 
   if (currentUser) {
     return (
-        <Pressable className="opacity-80" onPress={() => navigation.toggleDrawer()}>
+        <Pressable className="opacity-80 pl-2" onPress={() => navigation.toggleDrawer()}>
           {({ pressed }) => (
             <User.Profile pubkey={currentUser.pubkey}>
               <View className={cn(pressed ? 'opacity-50' : 'opacity-90')}>
-                <User.Avatar style={{ width: 24, height: 24 }} />
+                <User.Avatar style={{ width: 32, height: 32 }} />
               </View>
             </User.Profile>
           )}
@@ -61,7 +63,7 @@ function UserIcon() {
       <Pressable className="opacity-80">
         {({ pressed }) => (
           <View className={cn(pressed ? 'opacity-50' : 'opacity-90')}>
-            <Icon name="account-circle-outline" size={24} color={colors.foreground} />
+            <Icon name="account-circle-outline" size={32} color={colors.foreground} />
           </View>
         )}
       </Pressable>
@@ -73,10 +75,10 @@ function SettingsIcon() {
   const { colors } = useColorScheme();
   return (
     <Link href="/settings" asChild>
-      <Pressable className="opacity-80">
+      <Pressable className="opacity-80 pr-2">
         {({ pressed }) => (
           <View className={cn(pressed ? 'opacity-50' : 'opacity-90')}>
-            <Icon name="cog-outline" color={colors.foreground} />
+            <Icon name="cog-outline" size={32} color={colors.foreground} />
           </View>
         )}
       </Pressable>
@@ -93,8 +95,7 @@ export default function DrawerLayout() {
         drawerContent={DrawerContent}
         screenOptions={INDEX_OPTIONS}
       >
-        <Drawer.Screen name="index" options={{ title: 'Threads' }} />
-        <Drawer.Screen name="wallet" options={{ title: 'Wallet' }} />
+        <Drawer.Screen name="/(home)" options={{ title: 'Threads' }} />
       </Drawer>
     </>
   );
@@ -102,8 +103,26 @@ export default function DrawerLayout() {
 
 export function DrawerContent(props: DrawerContentComponentProps) {
   const { colors } = useColorScheme();
+  const { walletService, defaultWallet } = useNDKWallet();
 
   const activeScreen = getActiveDrawerContentScreen(props);
+
+  const walletCount = useMemo(() => {
+    return walletService?.wallets.length || 0;
+  }, [walletService]);
+
+  let walletLink: string = '/(wallet)';
+
+  useEffect(() => {
+    if (walletCount === 0) {
+      walletLink = '/new-wallet';
+    } else if (walletCount === 1) {
+        walletLink = '/(wallet)';
+      } else {
+        walletLink = '/(wallets)/list';
+      }
+  }, [walletCount]);
+  
 
   return (
     <DrawerContentRoot
@@ -129,11 +148,11 @@ export function DrawerContent(props: DrawerContentComponentProps) {
             rightView={<Text className="px-1 text-sm">1</Text>}
           />
         </Link>
-        <Link href="/(home)/wallet" asChild>
+        <Link href={"/(wallets)" ?? walletLink} asChild>
           <DrawerContentSectionItem
             icon={{ name: 'lightning-bolt' }}
             isActive={activeScreen === 'wallet'}
-            label="Wallet"
+            label={"Wallet" + walletLink}
           />
         </Link>
         <Link href="/schedule" asChild>

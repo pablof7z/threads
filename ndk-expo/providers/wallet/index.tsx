@@ -1,3 +1,5 @@
+import "@bacons/text-decoder/install";
+import "react-native-get-random-values";
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import NDKWalletService, { NDKWallet } from '@nostr-dev-kit/ndk-wallet';
 import { useNDK } from '@/ndk-expo';

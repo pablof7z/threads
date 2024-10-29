@@ -28,11 +28,11 @@ const RelayListItem: React.FC<ListItemProps<{
 };
 
 const RelayListScreen: React.FC = () => {
-    const filters = useMemo(() => ({
+    const filters = useMemo(() => [{
         kinds: [30166],
         "#N": ["29"],
         authors: ["9bbbb845e5b6c831c29789900769843ab43bb5047abe697870cb50b6fc9bf923"]
-    }), []);
+    }], []);
 
     const opts = useMemo(() => ({
         relays: ["wss://relay.nostr.watch"],
