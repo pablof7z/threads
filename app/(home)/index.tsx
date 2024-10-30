@@ -25,6 +25,9 @@ import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import Swipeable from '@/components/ui/Swipable';
 import Article from '@/components/events/article';
+import { articleStore } from '../stores';
+import { useStore } from 'zustand';
+import { LinearGradient } from 'expo-linear-gradient';
 
 
 Notifications.setNotificationHandler({
@@ -224,7 +227,10 @@ const ArticleList = () => {
 
     const {events: articles} = useSubscribe<NDKArticle>({filters, opts});
 
+    const store = useStore(articleStore);
+
     if (articles.length === 0) return <Text>No articles</Text>;
+
 
     return (
         <View className="flex-1 items-stretch justify-stretch h-full w-full">
@@ -232,11 +238,23 @@ const ArticleList = () => {
                 data={articles}
                 keyExtractor={(item) => item.id}
                 estimatedItemSize={500}
-                renderItem={(item) => (
-                    <ArticleCard3 article={item.item} />
-                )}
-                snapToInterval={Dimensions.get('window').width}
-                decelerationRate="fast"
+                renderItem={(item) => {
+                    const article = item.item;
+                    
+                    return (
+                        <TouchableHighlight onPress={() => {
+                            store.setArticle(article)
+                            router.push(`/article`);
+                        }}>
+                            
+                            {(item.index === 0) ? (
+                                <FeaturedArticleCard article={item.item} />
+                            ) : (
+                                <ArticleCard3 article={item.item} />
+                            )}
+                        </TouchableHighlight>
+                    )
+                }}
             />
         </View>
     )
@@ -245,25 +263,49 @@ const ArticleList = () => {
 interface ArticleCardProps {
     article: NDKArticle;
 }
-  function ArticleCard3({ article }: ArticleCardProps) {
+
+function FeaturedArticleCard({ article }: ArticleCardProps) {
     return (
-        <TouchableHighlight onPress={() => {
-            router.push(`/article?eventId=${article.id}`);
-        }}>
+        <View className="relative" style={{ height: Dimensions.get('window').height*0.5 }}>
+                <Image source={article.image} className="w-full h-full flex-1" style={{ objectFit: 'cover', height: '100%', maxWidth: '100%' }} />
+                
+            <LinearGradient
+                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,1)']}
+                style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '100%' }}
+            />
+            
+            <View style={{ position: 'absolute', bottom: 10, left: 10, right: 10 }}>
+                <Text numberOfLines={2} variant="heading" className="text-3xl font-bold text-white font-serif">{article.title}</Text>
+
+                <View className="flex-row items-center gap-4 py-2">
+                    <User.Profile pubkey={article.pubkey}>
+                        <User.Avatar className="w-8 h-8" />
+
+                        <View className="flex-1 flex-col items-start">
+                            <Text variant="subhead" className="text-white"><User.Name /></Text>
+                        </View>
+                    </User.Profile>
+                </View>
+            </View>
+        </View>
+    );
+}
+
+function ArticleCard3({ article }: ArticleCardProps) {
+    return (
             <View style={styles.container}>
                 <View style={styles.content}>
-                <Text style={styles.title}>{article.title}</Text>
+                <Text style={styles.title} numberOfLines={2}>{article.title}</Text>
                 <Text style={styles.meta}>
                     <User.Profile pubkey={article.pubkey}>
                         <User.Name />
                     </User.Profile>
                     • 4 min read
                 </Text>
-                <Text style={styles.summary} numberOfLines={3}>{article.summary}</Text>
+                <Text style={styles.summary} numberOfLines={2}>{article.summary}</Text>
                 </View>
                 <Image source={article.image} style={styles.image} />
             </View>
-        </TouchableHighlight>
     );
 }
   

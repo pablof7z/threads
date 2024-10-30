@@ -95,7 +95,7 @@ export default function DrawerLayout() {
         drawerContent={DrawerContent}
         screenOptions={INDEX_OPTIONS}
       >
-        <Drawer.Screen name="/(home)" options={{ title: 'Threads' }} />
+        <Drawer.Screen name="index" options={{ title: 'Threads' }} />
       </Drawer>
     </>
   );
@@ -151,7 +151,7 @@ export function DrawerContent(props: DrawerContentComponentProps) {
           <DrawerContentSectionItem
             icon={{ name: 'lightning-bolt' }}
             isActive={activeScreen === 'wallet'}
-            label={"Wallet" + walletLink}
+            label="Wallet"
           />
         </Link>
         <Link href="/schedule" asChild>

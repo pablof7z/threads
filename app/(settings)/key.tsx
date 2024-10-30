@@ -48,7 +48,7 @@ export default function SettingsIosStyleScreen() {
             <Text numberOfLines={1} variant="body" className="font-mono">{nsec ?? "no key"}</Text>
           </View>
         ),
-        leftView: <IconView name="clipboard-outline" className="bg-gray-500" />,
+        rightView: <IconView name="clipboard-outline" className="bg-gray-500" />,
       },
       
     ]
@@ -84,7 +84,7 @@ function renderItem<T extends (typeof data)[number]>(info: ListRenderItemInfo<T>
       )}
       titleClassName="text-lg"
       leftView={info.item.leftView}
-      rightView={
+      rightView={info.item.rightView ?? (
         <View className="flex-1 flex-row items-center justify-center gap-2 px-4">
           {info.item.rightText && (
             <Text variant="callout" className="ios:px-0 text-muted-foreground px-2">
@@ -100,7 +100,7 @@ function renderItem<T extends (typeof data)[number]>(info: ListRenderItemInfo<T>
           )}
           <ChevronRight />
         </View>
-      }
+      )}
       {...info}
       onPress={() => console.log('onPress')}
     />

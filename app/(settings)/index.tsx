@@ -52,7 +52,7 @@ export default function SettingsIosStyleScreen() {
       },
       {
         id: '11',
-        title: 'Key2',
+        title: 'Key',
         leftView: <IconView name="key-outline" className="bg-gray-500" />,
         onPress: () => router.push('/(settings)/key')
       },
@@ -87,7 +87,7 @@ export default function SettingsIosStyleScreen() {
   );
 }
 
-function renderItem<T extends (typeof DATA)[number]>(info: ListRenderItemInfo<T>) {
+function renderItem<T extends (typeof data)[number]>(info: ListRenderItemInfo<T>) {
   if (typeof info.item === 'string') {
     return <ListSectionHeader {...info} />;
   }
@@ -140,57 +140,3 @@ function IconView({ className, name }: { className?: string; name: MaterialIconN
 function keyExtractor(item: (Omit<ListDataItem, string> & { id: string }) | string) {
   return typeof item === 'string' ? item : item.id;
 }
-
-type MockData =
-  | {
-      id: string;
-      title: string;
-      subTitle?: string;
-      leftView?: React.ReactNode;
-      rightText?: string;
-      badge?: number;
-      onPress?: () => void;
-    }
-  | string;
-
-const DATA: MockData[] = [
-  {
-    id: '1',
-    title: 'Profile',
-    subTitle: 'Apple ID, iCloud+ & Purchases',
-    leftView: (
-      <View className="px-3">
-        <Avatar alt="NativeWindUI's avatar">
-          <AvatarImage
-            source={{
-              uri: 'https://pbs.twimg.com/profile_images/1782428433898708992/1voyv4_A_400x400.jpg',
-            }}
-          />
-          <AvatarFallback>
-            <Text>NU</Text>
-          </AvatarFallback>
-        </Avatar>
-      </View>
-    ),
-  },
-
-  // 'gap 1',
-  {
-    id: '4',
-    title: 'Relays',
-    leftView: <IconView name="wifi" className="bg-blue-500" />,
-  },
-
-  'gap 3',
-  {
-    id: '8',
-    title: 'Notifications',
-    leftView: <IconView name="bell-outline" className="bg-destructive" />,
-  },
-  'gap 4',
-  {
-    id: '11',
-    title: 'Key3',
-    leftView: <IconView name="key-outline" className="bg-gray-500" />,
-  },
-];
