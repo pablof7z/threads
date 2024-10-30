@@ -60,7 +60,7 @@ function UserIcon() {
   
   return (
     <Link href="/login" asChild>
-      <Pressable className="opacity-80">
+      <Pressable className="opacity-80 pl-2">
         {({ pressed }) => (
           <View className={cn(pressed ? 'opacity-50' : 'opacity-90')}>
             <Icon name="account-circle-outline" size={32} color={colors.foreground} />
@@ -147,20 +147,20 @@ export function DrawerContent(props: DrawerContentComponentProps) {
             label="Threads"
           />
         </Link>
-        <Link href={"/(wallets)" ?? walletLink} asChild>
+        <Link href={walletLink} asChild>
           <DrawerContentSectionItem
             icon={{ name: 'lightning-bolt' }}
             isActive={activeScreen === 'wallet'}
             label="Wallet"
           />
         </Link>
-        <Link href="/schedule" asChild>
+        {/* <Link href="/schedule" asChild>
           <DrawerContentSectionItem
             icon={{ name: 'alarm' }}
             isActive={activeScreen === 'schedule'}
             label="Schedule"
           />
-        </Link>
+        </Link> */}
       </DrawerContentSection>
       {/* {Platform.OS === 'android' && <View className="bg-border mx-3.5 my-1 h-px" />}
       <DrawerContentSectionTitle>Library</DrawerContentSectionTitle>

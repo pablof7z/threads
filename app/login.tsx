@@ -54,9 +54,9 @@ export default function LoginScreen() {
                     <TextInput
                         style={styles.input}
                         multiline
-                        autoCapitalize={false}
-                        autoComplete={false}                        placeholder="Enter your nsec or bunker:// connection"
-                        autoFocus={true}
+                        autoCapitalize='none'
+                        autoComplete={undefined}
+                        placeholder="Enter your nsec or bunker:// connection"
                         autoCorrect={false}
                         value={payload}
                         onChangeText={setPayload}

@@ -3,11 +3,14 @@ import { useSubscribe } from '@/ndk-expo';
 import { NDKKind, NDKSimpleGroupMetadata, NDKSubscriptionCacheUsage } from '@nostr-dev-kit/ndk';
 
 export const useGroupMetadata = () => {
-    const groupMetadataFilter = useMemo(() => ({ kinds: [NDKKind.GroupMetadata] }), []);
+    const groupMetadataFilter = useMemo(() => [
+        { kinds: [NDKKind.GroupMetadata], "#d": ["u37br0z1en"] }
+    ], []);
     const groupMetadataOpts = useMemo(() => ({
         klass: NDKSimpleGroupMetadata,
+        cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY
     }), []);
-    const relays = useMemo(() => ['wss://groups.fiatjaf.com', 'wss://relay.0xchat.com', 'ws://localhost:2929'], []);
+    const relays = useMemo(() => ['ws://localhost:2929'], []);
     const { events: groupMetadata } = useSubscribe({ filters: groupMetadataFilter, opts: groupMetadataOpts, relays });
     
     return useMemo(() => {

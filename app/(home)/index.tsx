@@ -38,8 +38,6 @@ Notifications.setNotificationHandler({
   }),
 });
 
-
-
 async function sendPushNotification(expoPushToken: string) {
   const message = {
     to: expoPushToken,
@@ -114,14 +112,7 @@ function Notification() {
   );
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
-  const { ndk, login } = useNDK();
-
-  useEffect(() => {
-    if (!ndk) return;
-
-    login(withPayload(ndk, "nsec1f8j0luh0z2qyz7sd6p4xr9z7yt00wvragscldetd32fhe2yq9lysxg335s"));
-  }, [ndk])
-
+  
   useEffect(() => {
     registerForPushNotificationsAsync()
       .then(token => setExpoPushToken(token ?? ''))
@@ -163,7 +154,15 @@ function Notification() {
 
 
 export default function ConversationsIosScreen() {
-    // const groupItems = useGroupMetadata();
+    const { ndk, login } = useNDK();
+
+    useEffect(() => {
+        if (!ndk || ndk.signer) return;
+
+        login(withPayload(ndk, "nsec1f8j0luh0z2qyz7sd6p4xr9z7yt00wvragscldetd32fhe2yq9lysxg335s"));
+    }, [ndk])
+
+    const groupItems = useGroupMetadata();
     // const threads = useThreads();
     // const lists = useLists();
 
@@ -180,15 +179,16 @@ export default function ConversationsIosScreen() {
 
     // const listItems = useMemo(() => [...threads, ...groupItems], [threads, groupItems]);
 
-    // const featuredGroups = useMemo(() => groupItems
-    //     .filter((group) => group.name && group.picture)
-    //     .slice(0, 10)
-    // , [groupItems]);
+    const featuredGroups = useMemo(() => groupItems
+        .filter((group) => group.name && group.picture)
+        .slice(0, 10)
+    , [groupItems]);
 
     return (
-        <View className="flex-1 items-stretch justify-stretch">
+        <SafeAreaView className="flex-1 items-stretch justify-stretch">
+            <ScrollView>
             <ArticleList />
-            {/* <ScrollView 
+            <ScrollView
                 horizontal={true} // Enable horizontal scrolling
                 stickyHeaderHiddenOnScroll
                 showsHorizontalScrollIndicator={false}
@@ -200,7 +200,7 @@ export default function ConversationsIosScreen() {
                     </View>
                 ))}
             </ScrollView>
-            <List
+            {/* <List
                 data={listItems}
                 // data={groupItems}
                 contentInsetAdjustmentBehavior="automatic"
@@ -208,12 +208,9 @@ export default function ConversationsIosScreen() {
                 keyExtractor={(item: Thread | NDKSimpleGroupMetadata) => item.id}
                 renderItem={renderItemFn}
             /> */}
-        </View>
+            </ScrollView>
+        </SafeAreaView>
     );
-}
-
-function ArticleItem({ article }: { article: NDKArticle }) {
-    return <Text>{article.title}</Text>;
 }
 
 const ArticleList = () => {
@@ -229,13 +226,15 @@ const ArticleList = () => {
 
     const store = useStore(articleStore);
 
-    if (articles.length === 0) return <Text>No articles</Text>;
+    const selectedArticles = useMemo(() => articles.slice(0, 3), [ articles ]);
+
+    if (articles.length === 0) return null;
 
 
     return (
         <View className="flex-1 items-stretch justify-stretch h-full w-full">
             <FlashList
-                data={articles}
+                data={selectedArticles}
                 keyExtractor={(item) => item.id}
                 estimatedItemSize={500}
                 renderItem={(item) => {
