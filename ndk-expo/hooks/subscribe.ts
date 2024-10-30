@@ -1,6 +1,7 @@
 import { createStore } from 'zustand/vanilla';
 import {
     NDKEvent,
+    NDKEventId,
     NDKFilter,
     NDKRelaySet,
     NDKSubscription,
@@ -53,7 +54,16 @@ export const useSubscribe = <T extends NDKEvent>({
     const { ndk } = useNDK();
     const store = useMemo(() => createSubscribeStore<T>(), []);
     const storeInstance = useStore(store);
-    const eventIds = useRef<Set<string>>(new Set());
+
+    /**
+     * Map of eventIds that have been received by this subscription.
+     * 
+     * Key: event identifier (event.dTag or event.id)
+     * 
+     * Value: timestamp of the event, used to choose the
+     * most recent event on replaceable events
+     */
+    const eventIds = useRef<Map<string, number>>(new Map());
 
     const relaySet = useMemo(() => {
         if (ndk && relays && relays.length > 0) {
@@ -62,25 +72,40 @@ export const useSubscribe = <T extends NDKEvent>({
         return undefined;
     }, [ndk, relays]);
 
+    const shouldAcceptEvent = (event: NDKEvent) => {
+        const id = event.tagId();
+        const currentVal = eventIds.current.get(id);
+
+        // We have not seen this ID yet
+        if (!currentVal) return true;
+
+        // The ID we have seen is older
+        if (currentVal < event.created_at!) return true;
+
+        return false;
+    }
+
     const handleEvent = useCallback((event: NDKEvent) => {
         const id = event.tagId();
-        if (eventIds.current.has(id)) return;
 
-        console.log('received event', event.kind, event.id.substring(0, 6))
+        if (!shouldAcceptEvent(event)) return;
 
         if (opts?.includeDeleted !== true && event.isParamReplaceable() && event.hasTag('deleted')) {
-            eventIds.current.add(id);
+            // We mark the event but we don't add the actual event, since
+            // it has been deleted
+            eventIds.current.set(id, event.created_at!);
+            
             return;
         }
 
-        if (opts?.klass) {
-            event = opts.klass.from(event);
-        }
+        // If we need to convert the event, we do so
+        if (opts?.klass) event = opts.klass.from(event);
 
+        // If conversion failed, we bail
         if (!event) return;
 
         storeInstance.addEvent(event as T);
-        eventIds.current.add(id);
+        eventIds.current.set(id, event.created_at!);
     }, [opts?.klass]);
 
     const handleEose = () => {
@@ -94,7 +119,7 @@ export const useSubscribe = <T extends NDKEvent>({
     const focused = useIsFocused();
 
     useEffect(() => {
-        console.log('subscription focused changed', {focused})
+        console.log('subscription focused changed', {filters, focused})
     }, [focused]);
 
     useEffect(() => {

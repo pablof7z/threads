@@ -1,6 +1,6 @@
 import { useNDK } from '@/ndk-expo';
 import { Icon, MaterialIconName } from '@roninoss/icons';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import * as User from '@/ndk-expo/components/user';
 
@@ -17,44 +17,62 @@ import {
 import { Text } from '~/components/nativewindui/Text';
 import { cn } from '~/lib/cn';
 import { useColorScheme } from '~/lib/useColorScheme';
-import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
+import { NDKPrivateKeySigner, NDKRelay, NDKRelayStatus, NDKUser } from '@nostr-dev-kit/ndk';
 import { nip19 } from 'nostr-tools';
 
-export default function SettingsIosStyleScreen() {
-  const { ndk, currentUser } = useNDK();
-  const privateKey = (ndk?.signer as NDKPrivateKeySigner)?._privateKey;
+const CONNECTIVITY_STATUS_COLORS: Record<NDKRelayStatus, string> = {
+    [NDKRelayStatus.RECONNECTING]: '#f1c40f',
+    [NDKRelayStatus.CONNECTING]: '#f1c40f',
+    [NDKRelayStatus.DISCONNECTED]: '#aa4240',
+    [NDKRelayStatus.DISCONNECTING]: '#aa4240',
+    [NDKRelayStatus.CONNECTED]: '#e74c3c',
+    [NDKRelayStatus.FLAPPING]: '#2ecc71',
+    [NDKRelayStatus.AUTHENTICATING]: '#3498db',
+    [NDKRelayStatus.AUTHENTICATED]: '#e74c3c',
+    [NDKRelayStatus.AUTH_REQUESTED]: '#e74c3c',
+} as const;
 
-  const data = useMemo(() => {
-    const nsec = privateKey ? nip19.nsecEncode(privateKey) : null;
+function RelayConnectivityIndicator({ relay }: { relay: NDKRelay }) {
+    const color = CONNECTIVITY_STATUS_COLORS[relay.status]
     
-    return [
-      {
-        id: '11',
-        title: (
-          <View className="flex-1 flex-row items-center justify-center">
-            <Text numberOfLines={1} variant="body" className="font-mono">{nsec ?? "no key"}</Text>
-          </View>
-        ),
-        rightView: <IconView name="clipboard-outline" className="bg-gray-500" />,
-      },
-      
-    ]
-  }, [currentUser, privateKey]);
-  
+    return (
+        <View style={{ borderRadius: 10, width: 8, height: 8, backgroundColor: color }}></View>
+    )
+}
+
+export default function RelaysScreen() {
+    const { ndk } = useNDK();
+    const [ searchText, setSearchText ] = useState<string | null>(null);
+
+    const data = useMemo(() => {
+        if (!ndk) return [];
+        
+        return Array.from(ndk.pool.relays.values())
+            .map((relay: NDKRelay) => ({
+                id: relay.url,
+                title: relay.url,
+                rightView: <View className="flex-1 items-center px-4 py-2">
+                    <RelayConnectivityIndicator relay={relay} />
+                </View>
+            }))
+            .filter(item => (searchText??'').trim().length === 0 || item.title.match(searchText!))
+  }, [ndk?.pool.relays, searchText]);
+
   return (
     <>
-      <LargeTitleHeader title="Key" searchBar={{ iosHideWhenScrolling: true }} />
-      <List
-        contentContainerClassName="pt-4"
-        contentInsetAdjustmentBehavior="automatic"
-        variant="insets"
-        data={data}
-        estimatedItemSize={ESTIMATED_ITEM_HEIGHT.titleOnly}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        sectionHeaderAsGap
-      />
-      <Text>{(ndk?.signer as NDKPrivateKeySigner)?.privateKey}</Text>
+        <LargeTitleHeader title="Relays" searchBar={{ iosHideWhenScrolling: true, onChangeText: setSearchText }} />
+        <List
+            contentContainerClassName="pt-4"
+            contentInsetAdjustmentBehavior="automatic"
+            variant="insets"
+            data={data}
+            estimatedItemSize={ESTIMATED_ITEM_HEIGHT.titleOnly}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            sectionHeaderAsGap
+        />
+
+
     </>
   );
 }

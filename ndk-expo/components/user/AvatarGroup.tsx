@@ -11,6 +11,10 @@ interface AvatarGroupProps {
     threshold: number;
 }
 
+/**
+ * This component renders a list of avatars that slightly overlap. Useful to show
+ * multiple people that have participated in certain event
+ */
 const AvatarGroup: React.FC<AvatarGroupProps> = ({ events, pubkeys, avatarSize, threshold = 3 }) => {
     const pubkeyCounts = useMemo(() => {
         if (!events) return {};

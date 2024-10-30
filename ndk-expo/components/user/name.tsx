@@ -2,6 +2,9 @@ import React from 'react';
 import { Text } from 'react-native';
 import { useUserProfile } from './profile';
 
+/**
+ * Renders the name of a user
+ */
 const Name: React.FC<Text['props']> = (props) => {
     const { userProfile, user } = useUserProfile();
 
