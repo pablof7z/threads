@@ -6,7 +6,7 @@ import { Link, router, Stack, useNavigation } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';  
-import { Platform, View } from 'react-native';
+import { Platform, View, SafeAreaView } from 'react-native';
 
 import { ThemeToggle } from '~/components/ThemeToggle';
 import { useColorScheme, useInitialAndroidBarSync } from '~/lib/useColorScheme';
@@ -46,11 +46,11 @@ export default function RootLayout() {
                                     headerShown: true,
                                     headerTintColor: Platform.OS === 'ios' ? undefined : colors.foreground,
                             }}>
-                                <Stack.Screen name="auth/login" options={LOGIN_OPTIONS} />
                                 <Stack.Screen name="(home)/index" options={{
                                     headerShown: false,
                                     title: 'Threads',
                                 }} />
+                                <Stack.Screen name="login" options={LOGIN_OPTIONS} />
                                 <Stack.Screen name="relays" options={RELAYS_OPTIONS} />
                                 <Stack.Screen name="(wallet)" options={{
                                     headerShown: true,
@@ -70,12 +70,19 @@ export default function RootLayout() {
                                         </Link>
                                     )
                                 }} />
-                                <Stack.Screen name="settings" options={SETTINGS_OPTIONS} />
+                                <Stack.Screen name="(settings)" options={SETTINGS_OPTIONS} />
                                 <Stack.Screen name="new-wallet" options={{
                                     presentation: 'modal',
                                     title: 'New Wallet',
                                     animation: 'fade_from_bottom',
                                 }} />
+                                <Stack.Screen
+                                    name="article"
+                                    options={{
+                                        title: 'Article',
+                                        statusBarTranslucent: true,
+                                    }}
+                                />
                             </Stack>
                                 
                             </NavThemeProvider>
@@ -90,13 +97,14 @@ export default function RootLayout() {
 const SETTINGS_OPTIONS = {
   presentation: 'modal',
   animation: 'fade_from_bottom', // for android
+  headerShown: false,
   title: 'Settings',
   headerRight: () => <ThemeToggle />,
 } as const;
 
 const LOGIN_OPTIONS = {
   presentation: 'modal',
-  title: 'Login',
+  headerShown: false,
   animation: 'fade_from_bottom', // for android
 } as const;
 

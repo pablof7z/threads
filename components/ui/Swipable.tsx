@@ -75,7 +75,6 @@ function Swipeable({ children, isUnread }: { children: React.ReactNode; isUnread
     }));
 
     function onToggleMarkAsRead() {
-        console.log('onToggleMarkAsRead');
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 

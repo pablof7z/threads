@@ -18,6 +18,7 @@ import { Text } from '~/components/nativewindui/Text';
 import { cn } from '~/lib/cn';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
+import { router } from 'expo-router';
 
 function ProfileItem(currentUser: NDKUser | null) {
     if (!currentUser) return null;
@@ -25,7 +26,7 @@ function ProfileItem(currentUser: NDKUser | null) {
     return (
       <View className="px-3">
         <User.Profile pubkey={currentUser.pubkey}>
-            <User.Avatar />
+            <User.Avatar alt="Profile" />
         </User.Profile>
         
       </View>
@@ -51,8 +52,9 @@ export default function SettingsIosStyleScreen() {
       },
       {
         id: '11',
-        title: 'Key',
+        title: 'Key2',
         leftView: <IconView name="key-outline" className="bg-gray-500" />,
+        onPress: () => router.push('/(settings)/key')
       },
       'gap 3',
       {
@@ -115,7 +117,7 @@ function renderItem<T extends (typeof DATA)[number]>(info: ListRenderItemInfo<T>
         </View>
       }
       {...info}
-      onPress={() => console.log('onPress')}
+      onPress={() => info.item.onPress?.()}
     />
   );
 }
@@ -147,6 +149,7 @@ type MockData =
       leftView?: React.ReactNode;
       rightText?: string;
       badge?: number;
+      onPress?: () => void;
     }
   | string;
 
@@ -187,7 +190,7 @@ const DATA: MockData[] = [
   'gap 4',
   {
     id: '11',
-    title: 'Key',
+    title: 'Key3',
     leftView: <IconView name="key-outline" className="bg-gray-500" />,
   },
 ];

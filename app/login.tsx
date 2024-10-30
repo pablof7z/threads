@@ -6,6 +6,9 @@ import { NDKPrivateKeySigner } from "@nostr-dev-kit/ndk";
 import { nip19 } from "nostr-tools";
 import { withPrivateKey, withPayload, withNip46 } from "@/ndk-expo/providers/ndk/signers";
 import { Text } from "@/components/nativewindui/Text";
+import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader";
+import { colors } from "react-native-keyboard-controller/lib/typescript/components/KeyboardToolbar/colors";
+import { useTheme } from "@react-navigation/native";
 
 export default function LoginScreen() {
     const [payload, setPayload] = useState(
@@ -24,6 +27,8 @@ export default function LoginScreen() {
         }
     };
 
+    const { colors } = useTheme();
+
     useEffect(() => {
         if (currentUser) router.replace("/")
     }, [ currentUser ])
@@ -38,24 +43,31 @@ export default function LoginScreen() {
     }
 
     return (
-        <View className="flex-1 justify-center items-center">
+        <View className="flex-1 justify-center items-center bg-card w-full">
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={styles.container}
             >
-                    <Text style={styles.title}>Login to Nutsack</Text>
-                <TextInput
-                    style={styles.input}
-                    multiline
-                    placeholder="Enter your payload"
-                    value={payload}
-                    onChangeText={setPayload}
-                />
-                <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                    <Text style={styles.buttonText}>Login</Text>
-                </TouchableOpacity>
+                <View className="h-full w-full flex-1 items-center justify-center">
+                    <Text variant="heading" className="text-2xl font-bold">Login</Text>
+                    
+                    <TextInput
+                        style={styles.input}
+                        multiline
+                        autoCapitalize={false}
+                        autoComplete={false}                        placeholder="Enter your nsec or bunker:// connection"
+                        autoFocus={true}
+                        autoCorrect={false}
+                        value={payload}
+                        onChangeText={setPayload}
+                    />
+                    <TouchableOpacity style={styles.button} onPress={handleLogin}>
+                        <Text style={styles.buttonText}>Login</Text>
+                    </TouchableOpacity>
 
-                <Button onPress={createAccount} title="Create new account" />
+                    <Button onPress={createAccount} title="New to Nostr?" color={colors.primary} />
+                    <Button onPress={() => router.replace('/welcome')} title="New to Nostr" color={colors.primary} />
+                </View>
             </KeyboardAvoidingView>
         </View>
     );
@@ -64,6 +76,8 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
     container: {
         padding: 20,
+        flex: 1,
+        width: '100%'
     },
     title: {
         fontSize: 24,
@@ -74,6 +88,7 @@ const styles = StyleSheet.create({
         width: "100%",
         height: 100,
         borderColor: "gray",
+        fontFamily: 'monospace',
         borderWidth: 1,
         borderRadius: 5,
         padding: 10,
@@ -85,6 +100,7 @@ const styles = StyleSheet.create({
         padding: 20,
         borderRadius: 99,
         marginBottom: 10,
+        width: '100%'
     },
     buttonText: {
         color: "white",

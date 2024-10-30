@@ -8,15 +8,18 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNDK } from './ndk';
 
-type NDKEventWithFrom<T> = NDKEvent & { from: (event: T) => Promise<T> };
+type NDKEventWithFrom<T> = NDKEvent & { from: (event: T) => T };
 
 interface UseSubscribeParams {
     filters: NDKFilter[] | null;
-    opts?: NDKSubscriptionOptions & { klass?: NDKEventWithFrom<any> };
+    opts?: NDKSubscriptionOptions & {
+        klass?: NDKEventWithFrom<any>
+        includeDeleted?: boolean
+    };
     relays?: string[];
 }
 
-export const useSubscribe = <T = NDKEvent>({
+export const useSubscribe = <T extends NDKEvent>({
     filters,
     opts = undefined,
     relays = undefined,
@@ -35,11 +38,19 @@ export const useSubscribe = <T = NDKEvent>({
     }, [ndk, relays]);
 
     const handleEvent = useCallback(
-        async (event: NDKEvent) => {
-            if (eventIds.current.has(event.id)) return;
+        (event: NDKEvent) => {
+            const id = event.tagId();
+            if (eventIds.current.has(id)) return;
+
+            // check if the event is deleted
+            if (opts?.includeDeleted !== true &&event.isParamReplaceable() && event.hasTag('deleted')) {
+                eventIds.current.add(id);
+                return;
+            }
+
             const e = event;
             if (opts?.klass) {
-                event = await opts.klass.from(event);
+                event = opts.klass.from(event);
             }
 
             if (!event) {
@@ -49,7 +60,7 @@ export const useSubscribe = <T = NDKEvent>({
             }
 
             setEvents((prevEvents) => {
-                eventIds.current.add(event.id);
+                eventIds.current.add(id);
                 return [...prevEvents, event as T]
                     .sort((a, b) => (b as NDKEvent).created_at! - (a as NDKEvent).created_at!);
             });
@@ -88,6 +99,7 @@ export const useSubscribe = <T = NDKEvent>({
                 subscriptionRef.current = undefined;
             }
             eventIds.current.clear();
+            setEvents([]);
         };
     }, [filters, opts, relaySet, ndk, handleEvent, handleEose, handleClosed]);
 

@@ -3,21 +3,28 @@ import * as React from 'react';
 import { renderItem } from '@/components/lists/items';
 
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
-import { NDKEvent, NDKSimpleGroupMetadata, NDKEventId } from '@nostr-dev-kit/ndk';
+import { NDKEvent, NDKSimpleGroupMetadata, NDKEventId, NDKKind, NDKArticle } from '@nostr-dev-kit/ndk';
 import { Thread } from '@/components/lists/items/thread';
 import { useGroupMetadata } from '../hooks/useGroups';
 import { useThreads } from '../hooks/useThreads';
 import GroupCard from '../components/groups/card';
 import { List } from '@/components/nativewindui/List';
-import { Dimensions, GestureResponderEvent, SafeAreaView, TouchableOpacity, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { Dimensions, GestureResponderEvent, SafeAreaView, StyleSheet, Touchable, View } from 'react-native';
+import { ScrollView, TouchableHighlight } from 'react-native-gesture-handler';
 import { Text } from '@/components/nativewindui/Text';
 import { Button, Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+import * as User from '@/ndk-expo/components/user';
 import { withPayload } from '@/ndk-expo/providers/ndk/signers';
-import { useNDK } from '@/ndk-expo';
+import { useNDK, useSubscribe } from '@/ndk-expo';
+import { useNDKSession } from '@/ndk-expo/hooks/session';
+import { LargeTitleHeader } from '@/components/nativewindui/LargeTitleHeader';
+import { FlashList } from '@shopify/flash-list';
+import { Image } from 'expo-image';
+import Swipeable from '@/components/ui/Swipable';
+import Article from '@/components/events/article';
 
 
 Notifications.setNotificationHandler({
@@ -176,7 +183,8 @@ export default function ConversationsIosScreen() {
     // , [groupItems]);
 
     return (
-        <View style={{ flex: 1 }}>
+        <View className="flex-1 items-stretch justify-stretch">
+            <ArticleList />
             {/* <ScrollView 
                 horizontal={true} // Enable horizontal scrolling
                 stickyHeaderHiddenOnScroll
@@ -200,3 +208,75 @@ export default function ConversationsIosScreen() {
         </View>
     );
 }
+
+function ArticleItem({ article }: { article: NDKArticle }) {
+    return <Text>{article.title}</Text>;
+}
+
+const ArticleList = () => {
+    const { follows } = useNDKSession();
+    const filters = useMemo(() => [
+        { kinds: [NDKKind.Article], limit: 50 }
+    ], [follows]);
+    const opts = useMemo(() => {
+        return { klass: NDKArticle };
+    }, []);
+
+    const {events: articles} = useSubscribe<NDKArticle>({filters, opts});
+
+    if (articles.length === 0) return <Text>No articles</Text>;
+
+    return (
+        <View className="flex-1 items-stretch justify-stretch h-full w-full">
+            <FlashList
+                data={articles}
+                keyExtractor={(item) => item.id}
+                estimatedItemSize={500}
+                renderItem={(item) => (
+                    <ArticleCard3 article={item.item} />
+                )}
+                snapToInterval={Dimensions.get('window').width}
+                decelerationRate="fast"
+            />
+        </View>
+    )
+}
+
+interface ArticleCardProps {
+    article: NDKArticle;
+}
+  function ArticleCard3({ article }: ArticleCardProps) {
+    return (
+        <TouchableHighlight onPress={() => {
+            router.push(`/article?eventId=${article.id}`);
+        }}>
+            <View style={styles.container}>
+                <View style={styles.content}>
+                <Text style={styles.title}>{article.title}</Text>
+                <Text style={styles.meta}>
+                    <User.Profile pubkey={article.pubkey}>
+                        <User.Name />
+                    </User.Profile>
+                    • 4 min read
+                </Text>
+                <Text style={styles.summary} numberOfLines={3}>{article.summary}</Text>
+                </View>
+                <Image source={article.image} style={styles.image} />
+            </View>
+        </TouchableHighlight>
+    );
+}
+  
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      backgroundColor: '#f9f9f9',
+      padding: 10,
+      paddingVertical: 20,
+    },
+    content: { flex: 1, paddingRight: 10 },
+    image: { width: 90, height: 90, borderRadius: 8 },
+    title: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+    meta: { fontSize: 12, color: '#999', marginVertical: 4 },
+    summary: { fontSize: 14, color: '#666' },
+  });

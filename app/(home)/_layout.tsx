@@ -74,7 +74,7 @@ function UserIcon() {
 function SettingsIcon() {
   const { colors } = useColorScheme();
   return (
-    <Link href="/settings" asChild>
+    <Link href="/(settings)" asChild>
       <Pressable className="opacity-80 pr-2">
         {({ pressed }) => (
           <View className={cn(pressed ? 'opacity-50' : 'opacity-90')}>
@@ -145,7 +145,6 @@ export function DrawerContent(props: DrawerContentComponentProps) {
             icon={{ name: 'home' }}
             isActive={activeScreen === 'index'}
             label="Threads"
-            rightView={<Text className="px-1 text-sm">1</Text>}
           />
         </Link>
         <Link href={"/(wallets)" ?? walletLink} asChild>

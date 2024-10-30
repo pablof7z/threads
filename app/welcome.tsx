@@ -1,5 +1,5 @@
 import { Icon } from '@roninoss/icons';
-import { Link } from 'expo-router';
+import { Link, Stack } from 'expo-router';
 import { Platform, View, type ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,15 +13,16 @@ export default function WelcomeConsentScreen() {
   const { colors } = useColorScheme();
   return (
     <SafeAreaView style={ROOT_STYLE}>
+      <Stack.Screen options={{ title: 'Welcome', headerTransparent: true, statusBarTranslucent: true }} />
       <View className="mx-auto max-w-sm flex-1 justify-between gap-4 px-8 py-4 ">
         <View className="ios:pt-8 pt-12">
           <Text variant="largeTitle" className="ios:text-left ios:font-black text-center font-bold">
-            Welcome to your
+            Welcome to
           </Text>
           <Text
             variant="largeTitle"
             className="ios:text-left ios:font-black text-primary text-center font-bold">
-            Application
+            Threads
           </Text>
         </View>
         <View className="gap-8">
@@ -65,7 +66,7 @@ export default function WelcomeConsentScreen() {
               </Link>
             </Text>
           </View>
-          <Link href="../" replace asChild>
+          <Link href="/(home)" replace asChild>
             <Button size={Platform.select({ ios: 'lg', default: 'md' })}>
               <Text>Continue</Text>
             </Button>
