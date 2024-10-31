@@ -87,7 +87,7 @@ const CardContentSpecific: React.FC<CardContentSpecificProps> = ({ image, title,
             {articles.length > 0 && (
                 <CardFooter style={Platform.select({ ios: { backgroundColor: '#0E1724EE' } })}>
                     {uniquedContent.slice(0, 1).map(article => (
-                        <View className="flex-row items-center gap-4">
+                        <View className="flex-row items-center gap-4" key={article.id}>
                             {article.image && (
                                 <Image
                                     source={{ uri: article.image }}

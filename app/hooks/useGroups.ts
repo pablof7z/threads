@@ -4,7 +4,7 @@ import { NDKKind, NDKSimpleGroupMetadata, NDKSubscriptionCacheUsage } from '@nos
 
 export const useGroupMetadata = () => {
     const groupMetadataFilter = useMemo(() => [
-        { kinds: [NDKKind.GroupMetadata], "#d": ["u37br0z1en"] }
+        { kinds: [NDKKind.GroupMetadata] }
     ], []);
     const groupMetadataOpts = useMemo(() => ({
         klass: NDKSimpleGroupMetadata,

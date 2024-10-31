@@ -1,6 +1,5 @@
 import { router } from 'expo-router';
 import * as React from 'react';
-import { renderItem } from '@/components/lists/items';
 
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { NDKEvent, NDKSimpleGroupMetadata, NDKEventId, NDKKind, NDKArticle } from '@nostr-dev-kit/ndk';
@@ -28,6 +27,8 @@ import Article from '@/components/events/article';
 import { articleStore } from '../stores';
 import { useStore } from 'zustand';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Toolbar, ToolbarCTA, ToolbarIcon } from '@/components/nativewindui/Toolbar';
+import { renderItem } from '@/components/lists/items';
 
 
 Notifications.setNotificationHandler({
@@ -153,7 +154,7 @@ function Notification() {
 }
 
 
-export default function ConversationsIosScreen() {
+export default function HomeScreen() {
     const { ndk, login } = useNDK();
 
     useEffect(() => {
@@ -168,14 +169,17 @@ export default function ConversationsIosScreen() {
 
     const handleGroupPress = (group: NDKSimpleGroupMetadata) => {
         const groupId = group.dTag;
-        router.push(`/groups/home?groupId=${groupId}`);
+        router.push(`/groups?groupId=${groupId}`);
     };
 
     const handleMessagePress = (thread: Thread) => {
         router.push(`/messages/thread?eventId=${thread.rootEventId}`);
     };
 
-    // const renderItemFn = renderItem(handleMessagePress, handleGroupPress);
+    const renderItemFn = renderItem({
+        onThreadPress: handleMessagePress,
+        onGroupPress: handleGroupPress
+    });
 
     // const listItems = useMemo(() => [...threads, ...groupItems], [threads, groupItems]);
 
@@ -187,27 +191,27 @@ export default function ConversationsIosScreen() {
     return (
         <SafeAreaView className="flex-1 items-stretch justify-stretch">
             <ScrollView>
-            <ArticleList />
-            <ScrollView
-                horizontal={true} // Enable horizontal scrolling
-                stickyHeaderHiddenOnScroll
-                showsHorizontalScrollIndicator={false}
-                style={{ height: 320, flexGrow: 0 }}
-            >
-                {featuredGroups.map((item, index) => (
-                    <View style={{ paddingHorizontal: 5, paddingVertical: 10 }}>
-                        <GroupCard groupMetadata={item} />
-                    </View>
-                ))}
-            </ScrollView>
-            {/* <List
-                data={listItems}
-                // data={groupItems}
-                contentInsetAdjustmentBehavior="automatic"
-                estimatedItemSize={88}
-                keyExtractor={(item: Thread | NDKSimpleGroupMetadata) => item.id}
-                renderItem={renderItemFn}
-            /> */}
+                <ArticleList />
+                <ScrollView
+                    horizontal={true} // Enable horizontal scrolling
+                    stickyHeaderHiddenOnScroll
+                    showsHorizontalScrollIndicator={false}
+                    style={{ height: 320, flexGrow: 0 }}
+                >
+                    {featuredGroups.map((item, index) => (
+                        <View style={{ paddingHorizontal: 5, paddingVertical: 10 }}>
+                            <GroupCard groupMetadata={item} />
+                        </View>
+                    ))}
+                </ScrollView>
+                {/* <List
+                    // data={listItems}
+                    data={groupItems}
+                    contentInsetAdjustmentBehavior="automatic"
+                    estimatedItemSize={88}
+                    keyExtractor={(item: Thread | NDKSimpleGroupMetadata) => item.id}
+                    renderItem={renderItemFn}
+                /> */}
             </ScrollView>
         </SafeAreaView>
     );
@@ -226,98 +230,26 @@ const ArticleList = () => {
 
     const store = useStore(articleStore);
 
-    const selectedArticles = useMemo(() => articles.slice(0, 3), [ articles ]);
+    const selectedArticles = useMemo(() => articles.slice(0, 30), [ articles ]);
 
     if (articles.length === 0) return null;
 
+    const renderItemFn = renderItem({
+        onArticlePress: (article: NDKArticle) => {
+            store.setArticle(article)
+            router.push(`/article`);
+        }
+    })
 
     return (
         <View className="flex-1 items-stretch justify-stretch h-full w-full">
-            <FlashList
+            <List
                 data={selectedArticles}
                 keyExtractor={(item) => item.id}
                 estimatedItemSize={500}
-                renderItem={(item) => {
-                    const article = item.item;
-                    
-                    return (
-                        <TouchableHighlight onPress={() => {
-                            store.setArticle(article)
-                            router.push(`/article`);
-                        }}>
-                            
-                            {(item.index === 0) ? (
-                                <FeaturedArticleCard article={item.item} />
-                            ) : (
-                                <ArticleCard3 article={item.item} />
-                            )}
-                        </TouchableHighlight>
-                    )
-                }}
+                renderItem={renderItemFn}
             />
         </View>
     )
 }
 
-interface ArticleCardProps {
-    article: NDKArticle;
-}
-
-function FeaturedArticleCard({ article }: ArticleCardProps) {
-    return (
-        <View className="relative" style={{ height: Dimensions.get('window').height*0.5 }}>
-                <Image source={article.image} className="w-full h-full flex-1" style={{ objectFit: 'cover', height: '100%', maxWidth: '100%' }} />
-                
-            <LinearGradient
-                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,1)']}
-                style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '100%' }}
-            />
-            
-            <View style={{ position: 'absolute', bottom: 10, left: 10, right: 10 }}>
-                <Text numberOfLines={2} variant="heading" className="text-3xl font-bold text-white font-serif">{article.title}</Text>
-
-                <View className="flex-row items-center gap-4 py-2">
-                    <User.Profile pubkey={article.pubkey}>
-                        <User.Avatar className="w-8 h-8" />
-
-                        <View className="flex-1 flex-col items-start">
-                            <Text variant="subhead" className="text-white"><User.Name /></Text>
-                        </View>
-                    </User.Profile>
-                </View>
-            </View>
-        </View>
-    );
-}
-
-function ArticleCard3({ article }: ArticleCardProps) {
-    return (
-            <View style={styles.container}>
-                <View style={styles.content}>
-                <Text style={styles.title} numberOfLines={2}>{article.title}</Text>
-                <Text style={styles.meta}>
-                    <User.Profile pubkey={article.pubkey}>
-                        <User.Name />
-                    </User.Profile>
-                    • 4 min read
-                </Text>
-                <Text style={styles.summary} numberOfLines={2}>{article.summary}</Text>
-                </View>
-                <Image source={article.image} style={styles.image} />
-            </View>
-    );
-}
-  
-  const styles = StyleSheet.create({
-    container: {
-      flexDirection: 'row',
-      backgroundColor: '#f9f9f9',
-      padding: 10,
-      paddingVertical: 20,
-    },
-    content: { flex: 1, paddingRight: 10 },
-    image: { width: 90, height: 90, borderRadius: 8 },
-    title: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-    meta: { fontSize: 12, color: '#999', marginVertical: 4 },
-    summary: { fontSize: 14, color: '#666' },
-  });

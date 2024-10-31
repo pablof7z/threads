@@ -26,8 +26,8 @@ export default function GroupRow({ groupMetadata, onPress, index, target }: Grou
     const { colors } = useColorScheme();
 
     const groupId = groupMetadata.dTag;
-    const filters = useMemo(() => ({ kinds: [9, 10, 11, 12, 30023], "#h": [groupId], limit: 5 }), []);
-    const opts = useMemo(() => ({ cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY, }), []);
+    const filters = useMemo(() => [{ kinds: [30023], "#h": [groupId!] }], []);
+    const opts = useMemo(() => ({ cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY }), []);
     const { events: groupEvents } = useSubscribe({ filters, opts });
 
     const mostRecentEvent = useMemo(() => groupEvents.sort((a, b) => a.created_at! - b.created_at!).pop(), [groupEvents]);
@@ -40,7 +40,7 @@ export default function GroupRow({ groupMetadata, onPress, index, target }: Grou
         index,
         target,
         title: name,
-        subTitle: mostRecentEvent?.content,
+        subTitle: groupMetadata.dTag,
     }), [groupMetadata, index, target, name, mostRecentEvent?.content]);
 
     const messageCount = useMemo(() => groupEvents.length, [groupEvents]);

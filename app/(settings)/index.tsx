@@ -19,6 +19,7 @@ import { cn } from '~/lib/cn';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 import { router } from 'expo-router';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 function ProfileItem(currentUser: NDKUser | null) {
     if (!currentUser) return null;
@@ -72,7 +73,11 @@ export default function SettingsIosStyleScreen() {
   
   return (
     <>
-      <LargeTitleHeader title="Settings" searchBar={{ iosHideWhenScrolling: true }} />
+      <LargeTitleHeader
+        title="Settings"
+        searchBar={{ iosHideWhenScrolling: true }}
+        rightView={() => <ThemeToggle />}
+      />
       <List
         contentContainerClassName="pt-4"
         contentInsetAdjustmentBehavior="automatic"

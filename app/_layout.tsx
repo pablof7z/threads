@@ -39,52 +39,51 @@ export default function RootLayout() {
                     <GestureHandlerRootView style={{ flex: 1 }}>
                         <KeyboardProvider statusBarTranslucent navigationBarTranslucent>
                             <NavThemeProvider value={NAV_THEME[colorScheme]}>
-                            <Stack
-                                screenOptions={{
+                                <Stack
+                                    screenOptions={{
                                     animation: 'ios',
                                     title: "Home",
                                     headerShown: true,
                                     headerTintColor: Platform.OS === 'ios' ? undefined : colors.foreground,
-                            }}>
-                                <Stack.Screen name="(home)" options={{
-                                    headerShown: false,
-                                    title: 'Threads',
-                                }} />
-                                <Stack.Screen name="login" options={LOGIN_OPTIONS} />
-                                <Stack.Screen name="relays" options={RELAYS_OPTIONS} />
-                                <Stack.Screen name="(wallet)" options={{
-                                    headerShown: true,
-                                    headerTitle: () => <Text>Wallet</Text>,
-                                    headerRight: () => (
-                                        <Link href="/(wallets)">
-                                            <Icon name="inbox-multiple-outline" size={24} color={colors.foreground} />
-                                        </Link>
-                                    )
-                                }} />
-                                <Stack.Screen name="(wallets)" options={{
-                                    headerShown: true,
-                                    headerTitle: () => <Text>Wallets</Text>,
-                                    headerRight: () => (
-                                        <Link href="/new-wallet">
-                                            <Icon name="plus-box-outline" size={24} color={colors.foreground} />
-                                        </Link>
-                                    )
-                                }} />
-                                <Stack.Screen name="(settings)" options={SETTINGS_OPTIONS} />
-                                <Stack.Screen name="new-wallet" options={{
-                                    presentation: 'modal',
-                                    title: 'New Wallet',
-                                    animation: 'fade_from_bottom',
-                                }} />
-                                <Stack.Screen
-                                    name="article"
-                                    options={{
-                                        title: 'Article',
-                                        statusBarTranslucent: true,
-                                    }}
-                                />
-                            </Stack>
-                                
+                                }}>
+                                    <Stack.Screen name="(main)/(home)" options={{
+                                        headerShown: false,
+                                        title: 'Threads22',
+                                    }} />
+                                    <Stack.Screen name="login" options={LOGIN_OPTIONS} />
+                                    <Stack.Screen name="relays" options={RELAYS_OPTIONS} />
+                                    <Stack.Screen name="(wallet)" options={{
+                                        headerShown: true,
+                                        headerTitle: () => <Text>Wallet</Text>,
+                                        headerRight: () => (
+                                            <Link href="/(wallets)">
+                                                <Icon name="inbox-multiple-outline" size={24} color={colors.foreground} />
+                                            </Link>
+                                        )
+                                    }} />
+                                    <Stack.Screen name="(wallets)" options={{
+                                        headerShown: true,
+                                        headerTitle: () => <Text>Wallets</Text>,
+                                        headerRight: () => (
+                                            <Link href="/new-wallet">
+                                                <Icon name="plus-box-outline" size={24} color={colors.foreground} />
+                                            </Link>
+                                        )
+                                    }} />
+                                    <Stack.Screen name="(settings)" options={SETTINGS_OPTIONS} />
+                                    <Stack.Screen name="new-wallet" options={{
+                                        presentation: 'modal',
+                                        title: 'New Wallet',
+                                        animation: 'fade_from_bottom',
+                                    }} />
+                                    <Stack.Screen
+                                        name="article"
+                                        options={{
+                                            title: 'Article',
+                                            statusBarTranslucent: true,
+                                        }}
+                                    />
+                                </Stack>
                             </NavThemeProvider>
                         </KeyboardProvider>
                     </GestureHandlerRootView>

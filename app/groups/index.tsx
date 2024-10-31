@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { router, Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { NDKSimpleGroupMetadata, NDKKind, NDKSimpleGroupMemberList } from '@nostr-dev-kit/ndk';
+import { NDKSimpleGroupMetadata, NDKKind, NDKSimpleGroupMemberList, NDKArticle } from '@nostr-dev-kit/ndk';
 import { useSubscribe } from '@/ndk-expo';
 import AvatarGroup from '@/ndk-expo/components/user/AvatarGroup';
 import { ScrollView } from 'react-native-gesture-handler';
-import { SegmentedControl } from '~/components/nativewindui/SegmentedControl';
-import { Button } from '@/components/nativewindui/Button';
+import { List } from '@/components/nativewindui/List';
+import { renderItem } from '@/components/lists/items';
+import { articleStore } from '../stores';
+import { useStore } from 'zustand';
 
 const GROUP_EVENT_KINDS = [9, 10, 11, 12, 30023];
 
@@ -14,8 +16,8 @@ const Home: React.FC = () => {
     const { groupId } = useLocalSearchParams();
 
     const filters = useMemo(() => [
-        { kinds: [NDKKind.GroupMetadata, NDKKind.GroupMembers - 1, NDKKind.GroupMembers], "#d": [groupId] },
-        { kinds: GROUP_EVENT_KINDS, "#h": [groupId] },
+        { kinds: [NDKKind.GroupMetadata, NDKKind.GroupMembers - 1, NDKKind.GroupMembers], "#d": [groupId! as string] },
+        { kinds: GROUP_EVENT_KINDS, "#h": [groupId! as string] },
     ], [groupId]);
     const { events: groupEvents } = useSubscribe({ filters });
 
@@ -33,25 +35,9 @@ const Home: React.FC = () => {
     }, [groupEvents]);
     const events = useMemo(() => groupEvents.filter((event) => GROUP_EVENT_KINDS.includes(event.kind!)), [groupEvents]);
 
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    
-    const sections = useMemo(() => {
-        const sections = new Set<string>();
-        sections.add("Group");
+    const articles = groupEvents.filter(e => e.kind === NDKKind.Article).map(NDKArticle.from)
 
-        for (const event of groupEvents) {
-            switch (event.kind!) {
-                case NDKKind.GroupChat:
-                    sections.add('Chat');
-                    break;
-                case NDKKind.Article:
-                    sections.add('Reads');
-                    break;
-            }
-        }
-
-        return Array.from(sections);
-    }, [ groupEvents ]);
+    const store = useStore(articleStore);
 
     if (!metadata) {
         return <Text>Loading...</Text>;
@@ -67,23 +53,26 @@ const Home: React.FC = () => {
             <ScrollView>
                 <View style={styles.container}>
                     <Image source={{ uri: metadata.picture ?? "https://m.primal.net/KwlG.jpg" }} style={styles.image} />
-
-                    <SegmentedControl
-                        values={sections}
-                        selectedIndex={0}
-                        onIndexChange={(index) => {
-                            setSelectedIndex(index);
-                            if (sections[index] === 'Chat') {
-                                router.push(`/groups/chat?groupId=${groupId}`);
-                            }
-                        }}
-                    />
                     
-                <Text style={styles.name}>{metadata.name}</Text>
-                {admins && (
-                    <AvatarGroup pubkeys={admins.members} avatarSize={8} threshold={5} />
+                    <Text style={styles.name}>{metadata.name}</Text>
+                    {admins && (
+                        <AvatarGroup pubkeys={admins.members} avatarSize={8} threshold={5} />
                     )}
                 </View>
+
+                <List
+                    // data={listItems}
+                    data={articles}
+                    contentInsetAdjustmentBehavior="automatic"
+                    estimatedItemSize={88}
+                    keyExtractor={(item: NDKArticle) => item.id}
+                    renderItem={renderItem({
+                        onArticlePress: (article: NDKArticle) => {
+                            store.setArticle(article)
+                            router.push(`/article`);
+                        }
+                    })}
+                />
             </ScrollView>
         </>
     );
@@ -91,7 +80,6 @@ const Home: React.FC = () => {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         justifyContent: 'center',
     },
     image: {
@@ -99,7 +87,6 @@ const styles = StyleSheet.create({
         height: 200,
     },
     name: {
-        marginTop: 220,
         fontSize: 24,
         fontWeight: 'bold',
     },

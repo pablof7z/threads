@@ -1,7 +1,7 @@
 import "react-native-get-random-values";
 import "@bacons/text-decoder/install";
-import { PropsWithChildren, useState } from "react";
-import NDK, { NDKConstructorParams, NDKEvent, NDKSigner, NDKUser } from "@nostr-dev-kit/ndk";
+import { PropsWithChildren, useRef, useState } from "react";
+import NDK, { NDKConstructorParams, NDKEvent, NDKRelay, NDKSigner, NDKUser } from "@nostr-dev-kit/ndk";
 import NDKContext from "@/ndk-expo/context/ndk";
 
 const NDKProvider = ({
@@ -13,19 +13,24 @@ const NDKProvider = ({
         connect?: boolean;
     }
 >) => {
-    const [ndk, setNDK] = useState<NDK>(new NDK(opts));
+    const ndk = useRef(new NDK(opts));
+    ndk.netDebug = (msg: string, relay: NDKRelay) => {
+        const url = new URL(relay.url);
+        console.log('👉', url.hostname, msg);
+    }
     const [currentUser, setCurrentUser] = useState<NDKUser | null>(null);
+    
 
-    ndk.debug.enable = true;
+    ndk.current.debug.enabled = true;
 
     if (connect) {
-        ndk.connect();
+        ndk.current.connect();
     }
 
     async function login(promise: Promise<NDKSigner | null>) {
         promise
             .then((signer) => {
-                ndk.signer = signer ?? undefined;
+                ndk.current.signer = signer ?? undefined;
 
                 if (signer) {
                     signer.user().then(setCurrentUser)
@@ -34,19 +39,19 @@ const NDKProvider = ({
                 }
             })
             .catch((e) => {
-                console.log("error in login, removing signer", ndk.signer, e);
-                ndk.signer = undefined;
+                console.log("error in login, removing signer", ndk.current.signer, e);
+                ndk.current.signer = undefined;
             });
     }
 
     async function logout() {
-        ndk.signer = undefined;
+        ndk.current.signer = undefined;
     }
 
     return (
         <NDKContext.Provider
             value={{
-                ndk,
+                ndk: ndk.current,
                 login,
                 logout,
                 currentUser,

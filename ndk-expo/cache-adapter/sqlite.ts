@@ -33,12 +33,6 @@ export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
     constructor(dbName: string) {
         this.dbName = dbName ?? "ndk-cache";
         this.initialize();
-
-        setInterval(async () => {
-            const countOfEvents = await this.db.getAllSync(`SELECT COUNT(*) FROM events;`);
-            const countOfProfiles = await this.db.getAllSync(`SELECT COUNT(*) FROM profiles;`);
-            console.log({ countOfEvents, countOfProfiles });
-        }, 60000);
     }
 
     private async initialize() {
@@ -181,8 +175,6 @@ export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
             } catch (e) {
                 console.error("failed to parse profile", result[0].profile);
             }
-        } else {
-            console.log("No match fetching profile", {pubkey})
         }
         return null;
     }

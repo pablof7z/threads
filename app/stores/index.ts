@@ -10,7 +10,6 @@ type ArticleStoreState = {
 export const articleStore = create<ArticleStoreState>((set) => ({
     activeArticle: null,
     setArticle(article?: NDKArticle): void {
-        console.log('calling setArticle', !!article)
         set(() => ({ activeArticle: article }))
     }
 }));

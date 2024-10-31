@@ -175,6 +175,7 @@ type ListItemProps<T extends ListDataItem> = PressableProps &
     textNumberOfLines?: number;
     subTitleClassName?: string;
     subTitleStyle?: StyleProp<TextStyle>;
+    skipTitle?: boolean;
     subTitleNumberOfLines?: number;
     textContentClassName?: string;
     leftView?: React.ReactNode;
@@ -268,6 +269,7 @@ function ListItemComponent<T extends ListDataItem>(
     subTitleNumberOfLines,
     textContentClassName,
     sectionHeaderAsGap,
+    skipTitle,
     removeSeparator = false,
     leftView,
     rightView,
@@ -321,18 +323,20 @@ function ListItemComponent<T extends ListDataItem>(
                 'ios:border-t ios:border-border/80'
             )}>
             <View className={cn('flex-1', textContentClassName)}>
-              <Text numberOfLines={textNumberOfLines} style={titleStyle} className={titleClassName}>
-                {item.title}
-              </Text>
-              {!!item.subTitle && (
-                <Text
-                  numberOfLines={subTitleNumberOfLines}
-                  variant="subhead"
-                  style={subTitleStyle}
-                  className={cn('text-muted-foreground', subTitleClassName)}>
-                  {item.subTitle}
-                </Text>
-              )}
+                {skipTitle !== true && item.title && (
+                    <Text numberOfLines={textNumberOfLines} style={titleStyle} className={titleClassName}>
+                        {item.title}
+                    </Text>
+                )}
+                {!!item.subTitle && (
+                    <Text
+                    numberOfLines={subTitleNumberOfLines}
+                    variant="subhead"
+                    style={subTitleStyle}
+                    className={cn('text-muted-foreground', subTitleClassName)}>
+                    {item.subTitle}
+                    </Text>
+                )}
               {children}
             </View>
             {!!rightView && <View>{rightView}</View>}

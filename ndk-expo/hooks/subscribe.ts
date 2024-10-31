@@ -25,6 +25,7 @@ interface UseSubscribeParams {
 
 interface SubscribeStore<T> {
     events: T[];
+    eventMap: Map<string, T>;
     eose: boolean;
     isSubscribed: boolean;
     addEvent: (event: T) => void;
@@ -37,12 +38,18 @@ interface SubscribeStore<T> {
 const createSubscribeStore = <T extends NDKEvent>() =>
     createStore<SubscribeStore<T>>((set) => ({
         events: [],
+        eventMap: new Map(),
         eose: false,
         isSubscribed: false,
         subscriptionRef: undefined,
-        addEvent: (event) => set((state) => ({ events: [...state.events, event] })),
+        addEvent: (event) => set((state) => {
+            const { eventMap } = state;
+            eventMap.set(event.tagId(), event)
+            const events = Array.from(eventMap.values());
+            return { eventMap, events }
+        }),
         setEose: () => set({ eose: true }),
-        clearEvents: () => set({ events: [], eose: false }),
+        clearEvents: () => set({ eventMap: new Map(), eose: false }),
         setSubscription: (sub) => set({ subscriptionRef: sub, isSubscribed: !!sub }),
     }));
 
@@ -106,6 +113,7 @@ export const useSubscribe = <T extends NDKEvent>({
 
         storeInstance.addEvent(event as T);
         eventIds.current.set(id, event.created_at!);
+        console.log("adding event id", {id, time: event.created_at})
     }, [opts?.klass]);
 
     const handleEose = () => {
@@ -118,9 +126,9 @@ export const useSubscribe = <T extends NDKEvent>({
 
     const focused = useIsFocused();
 
-    useEffect(() => {
-        console.log('subscription focused changed', {filters, focused})
-    }, [focused]);
+    // useEffect(() => {
+    //     console.log('subscription focused changed', {filters, focused})
+    // }, [focused]);
 
     useEffect(() => {
         if (!filters || filters.length === 0 || !ndk) return;

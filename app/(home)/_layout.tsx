@@ -1,5 +1,3 @@
-import "@bacons/text-decoder/install";
-import "react-native-get-random-values";
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import { Icon } from '@roninoss/icons';
 import { Link, Stack, useNavigation } from 'expo-router';
@@ -147,6 +145,15 @@ export function DrawerContent(props: DrawerContentComponentProps) {
             label="Threads"
           />
         </Link>
+
+        <Link href="/(home)/publications" asChild>
+            <DrawerContentSectionItem
+                icon={{ name: 'home' }}
+                isActive={activeScreen === 'publications'}
+                label="Publications"
+            />
+        </Link>
+        
         <Link href={walletLink} asChild>
           <DrawerContentSectionItem
             icon={{ name: 'lightning-bolt' }}
