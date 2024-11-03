@@ -1,12 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { useNDK, useSubscribe } from "@/ndk-expo";
 import { NDKCashuMintList, NDKEvent, NDKKind, NDKList, NDKPrivateKeySigner, NDKSubscriptionCacheUsage } from '@nostr-dev-kit/ndk';
 import MintListItem from '@/components/cashu/mint/list/item';
 import { NDKCashuWallet } from '@nostr-dev-kit/ndk-wallet';
 import { router, Stack } from 'expo-router';
-import { useNDKSession } from '@/ndk-expo/hooks/session';
 import { Button } from '~/components/nativewindui/Button';
 import { Text } from '~/components/nativewindui/Text';
 import { List } from '@/components/nativewindui/List';
@@ -22,7 +20,7 @@ const RelayView: React.FC<RelayViewProps> = ({ relayUrls, onRelayUrlChange, addR
     return (
         <View className='flex-1 flex-col'>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Text style={styles.label}>Select your relays</Text>
+                <Text style={styles.label}>Relays</Text>
                 <Button onPress={addRelayUrl}>
                     <Text>Add</Text>
                 </Button>
@@ -82,7 +80,7 @@ const NewWalletPage: React.FC = () => {
     const [relayUrls, setRelayUrls] = useState<string[]>(ndk?.pool.connectedRelays().map(r => r.url).filter(u => !!u) || []);
     const [selectedMints, setSelectedMints] = useState<{ [key: string]: boolean }>({});
     const filter = useMemo(() => ([{ kinds: [38172], limit: 50 }]), [1]);
-    const opts = useMemo(() => ({ cacheUsage: NDKSubscriptionCacheUsage.ONLY_RELAY, groupable: false, closeOnEose: false, subId: 'mints' }), []);
+    const opts = useMemo(() => ({ groupable: false, closeOnEose: false, subId: 'mints' }), []);
     const { events: mintList } = useSubscribe({ filters: filter, opts });
 
     const handleRelayUrlChange = (index: number, url: string) => {
@@ -117,9 +115,7 @@ const NewWalletPage: React.FC = () => {
         mintList.p2pk = wallet.p2pk;
         await mintList.publish();
 
-        console.log('wallet created', wallet.id);
-
-        router.push('/wallet')
+        router.push('/')
     }, [ndk, walletName, relayUrls, selectedMints]);
 
     const [activeView, setActiveView] = useState<'mints' | 'relays'>('mints');

@@ -1,6 +1,6 @@
 import { useNDK } from '@/ndk-expo';
 import { Icon, MaterialIconName } from '@roninoss/icons';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import * as User from '@/ndk-expo/components/user';
 
@@ -20,9 +20,40 @@ import { useColorScheme } from '~/lib/useColorScheme';
 import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 import { router } from 'expo-router';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { walleteStore } from '@/app/stores';
+import { useStore } from 'zustand';
 
 export default function SettingsIosStyleScreen() {
-  const { currentUser } = useNDK();
+    const { ndk, currentUser } = useNDK();
+    const { activeWallet } = useStore(walleteStore);
+
+    ndk?.addExplicitRelay('wss://relay.primal.net')
+
+    
+
+    const publishTokens = useCallback(async () => {
+        if (!activeWallet) {
+            console.log('no wallet')
+            return;
+        }
+
+        if (activeWallet.tokens.length === 0) {
+            alert("No tokens to publish in this wallet")
+            return
+        }
+
+        for (const token of activeWallet.tokens) {
+            try {
+                console.log('publishing')
+                const relays = await token.publish(activeWallet.relaySet);
+                if (relays.size > 0) {
+                    console.log("published to relays", relays.values())
+                }
+            } catch (e) {
+                alert(e.message)
+            }
+        }
+    }, [activeWallet])
 
   const data = useMemo(() => {
     return [
@@ -30,24 +61,30 @@ export default function SettingsIosStyleScreen() {
         id: '2',
         title: 'Relays',
         leftView: <IconView name="wifi" className="bg-blue-500" />,
-        onPress: () => router.push('/(settings)/relays')
+        onPress: () => router.push('/(wallet)/(settings)/relays')
       },
       {
-        id: '11',
-        title: 'Key',
-        leftView: <IconView name="key-outline" className="bg-gray-500" />,
-        onPress: () => router.push('/(settings)/key')
+        id: '3',
+        title: 'Mints',
+        leftView: <IconView name="backpack" className="bg-orange-500" />,
+        onPress: () => router.push('/(wallet)/(settings)/mints')
       },
       'gap 3',
       {
-        id: '3',
-        title: 'Notifications',
-        leftView: <IconView name="bell-outline" className="bg-destructive" />,
+        id: '4',
+        title: 'Validate Tokens',
+        leftView: <IconView name="magnify" className="bg-destructive" />,
+      },
+      {
+        id: '5',
+        title: 'Publish Tokens',
+        leftView: <IconView name="bullhorn" />,
+        onPress: publishTokens
       },
       
     ]
   }, [currentUser]);
-
+  
   return (
     <>
       <LargeTitleHeader

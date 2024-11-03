@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Threads",
-    "slug": "threadstr",
-    "version": "1.0.0",
-    "scheme": "threads",
+    "name": "Honeypot",
+    "slug": "honeypot",
+    "version": "0.0.1",
+    "scheme": "honeypot",
     "web": {
       "bundler": "metro",
       "output": "static",
@@ -17,6 +17,12 @@
           "cameraPermission": "Allow Threads to access your camera",
           "microphonePermission": "Allow Threads to access your microphone",
           "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
         }
       ]
     ],
@@ -36,22 +42,28 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.pablof7z.threads",
-      "buildNumber": "3"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.pablof7z.honeypot",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.pablof7z.threads"
+      "package": "com.pablof7z.honeypot",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
+    "owner": "pablof7z",
     "extra": {
       "eas": {
-        "projectId": "003634e3-064a-4ee3-8a1a-841dcc91b515"
+        "projectId": "8bf71b7d-92c9-4944-900a-700a642d1183"
       }
-    },
-    "owner": "pablof7z"
+    }
   }
 }

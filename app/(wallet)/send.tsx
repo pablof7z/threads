@@ -16,7 +16,7 @@ const SendPage = () => {
     const { defaultWallet } = useNDKWallet();
 
     if (!permission) {
-        return <View />; // Loading state
+        return <View><Text>Loading...</Text></View>
     }
     if (!permission.granted) {
         return (
@@ -49,7 +49,7 @@ const SendPage = () => {
     return (
         <View style={styles.container}>
             <Drawer.Screen options={{ title: 'Send' }} />
-            {/* <CameraView 
+            <CameraView 
                  barcodeScannerSettings={{
                     barcodeTypes: ["qr"],
                 }}
@@ -57,7 +57,7 @@ const SendPage = () => {
                 onBarcodeScanned={({ data }) => handleQRCodeScanned(data)} // Add QR code scan handler
             >
                 <View style={styles.buttonContainer} />
-            </CameraView> */}
+            </CameraView>
             {Clipboard.isPasteButtonAvailable && (
                 <View style={styles.buttonContainer}>
                   <ClipboardPasteButton 

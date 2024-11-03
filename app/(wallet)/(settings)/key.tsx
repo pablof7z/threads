@@ -18,43 +18,32 @@ import { Text } from '~/components/nativewindui/Text';
 import { cn } from '~/lib/cn';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
-import { router } from 'expo-router';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { nip19 } from 'nostr-tools';
 
 export default function SettingsIosStyleScreen() {
-  const { currentUser } = useNDK();
+  const { ndk, currentUser } = useNDK();
+  const privateKey = (ndk?.signer as NDKPrivateKeySigner)?._privateKey;
 
   const data = useMemo(() => {
+    const nsec = privateKey ? nip19.nsecEncode(privateKey) : null;
+    
     return [
       {
-        id: '2',
-        title: 'Relays',
-        leftView: <IconView name="wifi" className="bg-blue-500" />,
-        onPress: () => router.push('/(settings)/relays')
-      },
-      {
         id: '11',
-        title: 'Key',
-        leftView: <IconView name="key-outline" className="bg-gray-500" />,
-        onPress: () => router.push('/(settings)/key')
-      },
-      'gap 3',
-      {
-        id: '3',
-        title: 'Notifications',
-        leftView: <IconView name="bell-outline" className="bg-destructive" />,
+        title: (
+          <View className="flex-1 flex-row items-center justify-center">
+            <Text numberOfLines={1} variant="body" className="font-mono">{nsec ?? "no key"}</Text>
+          </View>
+        ),
+        rightView: <IconView name="clipboard-outline" className="bg-gray-500" />,
       },
       
     ]
-  }, [currentUser]);
-
+  }, [currentUser, privateKey]);
+  
   return (
     <>
-      <LargeTitleHeader
-        title="Settings"
-        searchBar={{ iosHideWhenScrolling: true }}
-        rightView={() => <ThemeToggle />}
-      />
+      <LargeTitleHeader title="Key" searchBar={{ iosHideWhenScrolling: true }} />
       <List
         contentContainerClassName="pt-4"
         contentInsetAdjustmentBehavior="automatic"
@@ -65,6 +54,7 @@ export default function SettingsIosStyleScreen() {
         keyExtractor={keyExtractor}
         sectionHeaderAsGap
       />
+      <Text>{(ndk?.signer as NDKPrivateKeySigner)?.privateKey}</Text>
     </>
   );
 }
@@ -81,7 +71,7 @@ function renderItem<T extends (typeof data)[number]>(info: ListRenderItemInfo<T>
       )}
       titleClassName="text-lg"
       leftView={info.item.leftView}
-      rightView={
+      rightView={info.item.rightView ?? (
         <View className="flex-1 flex-row items-center justify-center gap-2 px-4">
           {info.item.rightText && (
             <Text variant="callout" className="ios:px-0 text-muted-foreground px-2">
@@ -97,9 +87,9 @@ function renderItem<T extends (typeof data)[number]>(info: ListRenderItemInfo<T>
           )}
           <ChevronRight />
         </View>
-      }
+      )}
       {...info}
-      onPress={() => info.item.onPress?.()}
+      onPress={() => console.log('onPress')}
     />
   );
 }

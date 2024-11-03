@@ -3,6 +3,7 @@ import "react-native-get-random-values";
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import NDKWalletService, { NDKWallet } from '@nostr-dev-kit/ndk-wallet';
 import { useNDK } from '@/ndk-expo';
+import { router } from "expo-router";
 
 interface NDKWalletContextType {
     walletService: NDKWalletService | null;
@@ -43,7 +44,6 @@ export const NDKWalletProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                     });
 
                     service.on('wallet:default', (wallet: NDKWallet) => {
-                        console.log('default wallet', wallet);
                         setDefaultWallet(wallet);
                     });
 

@@ -77,7 +77,7 @@ const NewWalletPage = () => {
         mintList.p2pk = wallet.p2pk;
         await mintList.publish();
 
-        router.push('/wallet')
+        router.push('/')
     };
 
     return (

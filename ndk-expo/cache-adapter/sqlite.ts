@@ -9,6 +9,7 @@ import {
     NDKRelay,
     deserialize,
     NDKTag,
+    NDKEventId,
 } from "@nostr-dev-kit/ndk";
 import * as SQLite from "expo-sqlite";
 import { matchFilter } from "nostr-tools";
@@ -23,6 +24,11 @@ type EventRecord = {
     kind: number;
     relay: string;
 };
+
+type UnpublishedEventRecord = EventRecord & {
+    relays: string;
+    last_try_at: number;
+}
 
 export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
     readonly dbName: string;
@@ -51,6 +57,15 @@ export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
             //     this.db.execAsync(`DROP TABLE IF EXISTS event_tags;`)
             // ])
             await Promise.all([
+                this.db.execAsync(
+                    `CREATE TABLE IF NOT EXISTS unpublished_events (
+                        id TEXT PRIMARY KEY,
+                        event TEXT,
+                        relays TEXT,
+                        last_try_at INTEGER
+                    );`
+                ),
+                
                 this.db.execAsync(
                     `CREATE TABLE IF NOT EXISTS events (
                         id TEXT PRIMARY KEY,
@@ -95,6 +110,9 @@ export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
 
         console.log("SQLiteCacheAdapter initialized", Date.now() - start, "ms");
 
+        const unpublishedEventCount = this.db.getAllSync(`SELECT COUNT(*) FROM unpublished_events;`);
+        console.log('unpublished event count', unpublishedEventCount);
+
         this.ready = true;
         this.locking = true;
     }
@@ -102,7 +120,7 @@ export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
     async query(subscription: NDKSubscription): Promise<void> {
         // Ensure the adapter is ready
         if (!this.ready) {
-            console.log("SQLiteCacheAdapter is not ready.");
+            console.log("SQLiteCacheAdapter is not ready.", { filter: subscription.filters });
             return;
         }
 
@@ -185,6 +203,45 @@ export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
             [pubkey, JSON.stringify(profile), Date.now()]
         );
     }
+
+    addUnpublishedEvent(event: NDKEvent, relayUrls: WebSocket["url"][]): void {
+        console.log(`Add unpublished event`, {kind: event.kind, id: event.id});
+        
+        try {
+        this.db.runSync(
+            `INSERT OR REPLACE INTO unpublished_events (id, event, relays, last_try_at) VALUES (?, ?, ?, ?);`,
+            [
+                event.id,
+                event.serialize(true, true),
+                (relayUrls ?? []).join(','),
+                Date.now()
+            ]
+        );
+    } catch (e) {
+        console.error('error adding unpublished event', e)
+    }
+    }
+
+    async getUnpublishedEvents(): Promise<{ event: NDKEvent; relays?: WebSocket["url"][]; lastTryAt?: number; }[]> {
+        console.log(`getting unpublishd events`);
+
+        const events = await (this.db.getAllAsync(`SELECT * FROM unpublished_events`)) as UnpublishedEventRecord[];
+        return events.map(event => {
+            console.log('unpublished event', {event});
+
+            const deserializedEvent = new NDKEvent(undefined, deserialize(event.event));
+            return {
+                event: deserializedEvent,
+                relays: event.relays.split(/,/),
+                lastTryAt: event.last_try_at
+            }
+        })
+    }
+
+    discardUnpublishedEvent(eventId: NDKEventId): void {
+    }
+
+
 }
 
 export function foundEvents(

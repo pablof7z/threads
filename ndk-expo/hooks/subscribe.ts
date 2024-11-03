@@ -12,7 +12,7 @@ import { useNDK } from './ndk';
 import { useStore } from 'zustand';
 import { useIsFocused } from '@react-navigation/native';
 
-type NDKEventWithFrom<T> = NDKEvent & { from: (event: T) => T };
+export type NDKEventWithFrom<T> = NDKEvent & { from: (event: T) => T };
 
 interface UseSubscribeParams {
     filters: NDKFilter[] | null;
@@ -113,7 +113,6 @@ export const useSubscribe = <T extends NDKEvent>({
 
         storeInstance.addEvent(event as T);
         eventIds.current.set(id, event.created_at!);
-        console.log("adding event id", {id, time: event.created_at})
     }, [opts?.klass]);
 
     const handleEose = () => {
@@ -124,12 +123,6 @@ export const useSubscribe = <T extends NDKEvent>({
         storeInstance.setSubscription(undefined);
     };
 
-    const focused = useIsFocused();
-
-    // useEffect(() => {
-    //     console.log('subscription focused changed', {filters, focused})
-    // }, [focused]);
-
     useEffect(() => {
         if (!filters || filters.length === 0 || !ndk) return;
 
@@ -137,8 +130,6 @@ export const useSubscribe = <T extends NDKEvent>({
             storeInstance.subscriptionRef.stop();
             storeInstance.setSubscription(undefined);
         }
-
-        console.log("creating subscription for filters", filters)
         
         const subscription = ndk.subscribe(filters, opts, relaySet, false);
         subscription.on('event', handleEvent);

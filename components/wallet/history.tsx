@@ -71,11 +71,13 @@ export default function History({ wallet }: HistoryProps) {
 
     return (
         <View>
-            <View style={{ flex: 1, alignItems: 'center', width: '100%' }} className="bg-secondary rounded-lg">
+            <View style={{ flex: 1, alignItems: 'center', width: '100%' }} className="rounded-lg">
+                <Text>{chartData.length}</Text>
                 <LineChart
+                    hideRules={true}
                     data={debouncedChartData}
                     width={300}
-                    height={300}
+                    height={100}
                     adjustToWidth
                     yAxisLabelWidth={50}
                     thickness={2}

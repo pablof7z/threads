@@ -1,41 +1,44 @@
 import React, { useEffect, useState } from "react";
-import { Button, StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, View } from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, View } from "react-native";
 import { useNDK } from "@/ndk-expo";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { NDKPrivateKeySigner } from "@nostr-dev-kit/ndk";
 import { nip19 } from "nostr-tools";
 import { withPrivateKey, withPayload, withNip46 } from "@/ndk-expo/providers/ndk/signers";
 import { Text } from "@/components/nativewindui/Text";
-import { LargeTitleHeader } from "@/components/nativewindui/LargeTitleHeader";
-import { colors } from "react-native-keyboard-controller/lib/typescript/components/KeyboardToolbar/colors";
 import { useTheme } from "@react-navigation/native";
+import { useNDKWallet } from "@/ndk-expo/providers/wallet";
+import { Button } from "@/components/nativewindui/Button";
+import * as SecureStore from 'expo-secure-store';
 
 export default function LoginScreen() {
     const [payload, setPayload] = useState(
-        // "nsec1f8j0luh0z2qyz7sd6p4xr9z7yt00wvragscldetd32fhe2yq9lysxg335s"
-        "nsec1ffqlrnhhqd35688phhn5uazd3ulf4j753csks73rmrnx6u3myn0su06dxm"
+        "nsec1f8j0luh0z2qyz7sd6p4xr9z7yt00wvragscldetd32fhe2yq9lysxg335s"
+        // "nsec1ffqlrnhhqd35688phhn5uazd3ulf4j753csks73rmrnx6u3myn0su06dxm"
     );
-    const { ndk, login, currentUser } = useNDK();
+    const { ndk, loginWithPayload, currentUser } = useNDK();
     const router = useRouter();
 
     const handleLogin = async () => {
         if (!ndk) return;
         try {
-            login(withPayload(ndk, payload));
+            await loginWithPayload(payload, { save: true });
         } catch (error) {
             Alert.alert("Error", error.message || "An error occurred during login");
         }
     };
 
-    const { colors } = useTheme();
+    const { walletService } = useNDKWallet()
 
     useEffect(() => {
-        if (currentUser) router.replace("/")
-    }, [ currentUser ])
+        if (currentUser && walletService) {
+            // setTimeout(() => router.replace("/(wallets)"), 500);
+        }
+    }, [ currentUser, walletService ])
 
     const createAccount = async () => {
         const signer = NDKPrivateKeySigner.generate();
-        await login(withPrivateKey(signer.privateKey!));
+        await loginWithPayload(signer.privateKey!, { save: true });
 
         const payload = nip19.nsecEncode(signer._privateKey!)
 
@@ -43,12 +46,12 @@ export default function LoginScreen() {
     }
 
     return (
-        <View className="flex-1 justify-center items-center bg-card w-full">
+        <View className="flex-1 justify-center items-center bg-card w-full px-8 py-4">
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={styles.container}
             >
-                <View className="h-full w-full flex-1 items-center justify-center">
+                <View className="h-full w-full flex-1 items-stretch justify-center gap-4">
                     <Text variant="heading" className="text-2xl font-bold">Login</Text>
                     
                     <TextInput
@@ -61,12 +64,13 @@ export default function LoginScreen() {
                         value={payload}
                         onChangeText={setPayload}
                     />
-                    <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                        <Text style={styles.buttonText}>Login</Text>
-                    </TouchableOpacity>
+                    <Button size={Platform.select({ ios: 'lg', default: 'md' })} onPress={handleLogin}>
+                        <Text>Login</Text>
+                    </Button>
 
-                    <Button onPress={createAccount} title="New to Nostr?" color={colors.primary} />
-                    <Button onPress={() => router.replace('/welcome')} title="New to Nostr" color={colors.primary} />
+                    <Button variant="tonal" onPress={createAccount}>
+                        <Text>New to nostr?</Text>
+                    </Button>
                 </View>
             </KeyboardAvoidingView>
         </View>

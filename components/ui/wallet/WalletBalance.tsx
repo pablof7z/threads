@@ -1,4 +1,4 @@
-import { StyleSheet, Touchable, TouchableNativeFeedback, View } from "react-native";
+import { Dimensions, StyleSheet, Touchable, TouchableNativeFeedback, View } from "react-native";
 import { Text } from "@/components/nativewindui/Text";
 
 interface WalletBalanceProps {
@@ -17,7 +17,7 @@ export default function WalletBalance({
             <View style={styles.balanceContainer}>
                 <Text style={styles.balance}>{balance}</Text>
                 <Text style={styles.unit}>{unit}</Text>
-                </View>
+            </View>
         </TouchableNativeFeedback>
     )
 }

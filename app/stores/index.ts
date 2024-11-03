@@ -1,15 +1,15 @@
-import { NDKArticle } from '@nostr-dev-kit/ndk';
+import { NDKCashuWallet } from "@nostr-dev-kit/ndk-wallet";
 import { create } from 'zustand';
 
-type ArticleStoreState = {
-    activeArticle: NDKArticle | null;
-    setArticle: (article?: NDKArticle) => void;
+type WalletStoreState = {
+    activeWallet: NDKCashuWallet | null;
+    setActiveWallet: (wallet?: NDKCashuWallet) => void;
 }
 
 /** Store */
-export const articleStore = create<ArticleStoreState>((set) => ({
-    activeArticle: null,
-    setArticle(article?: NDKArticle): void {
-        set(() => ({ activeArticle: article }))
+export const walleteStore = create<WalletStoreState>((set) => ({
+    activeWallet: null,
+    setActiveWallet(wallet?: NDKCashuWallet): void {
+        set(() => ({ activeWallet: wallet }))
     }
 }));

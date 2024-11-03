@@ -2,13 +2,10 @@ import "react-native-get-random-values";
 import React from 'react';
 import { View, StyleSheet, Button } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera'; // Update imports
-import { TouchableOpacity } from 'react-native-gesture-handler';
 import * as Clipboard from 'expo-clipboard';
 import { ClipboardPasteButton } from 'expo-clipboard'; // Add this import
-import { useState } from 'react'; // Add useState import
 import { Text } from '@/components/nativewindui/Text';
 import { useNDKWallet } from '@/ndk-expo/providers/wallet';
-import { router, Stack } from 'expo-router';
 import Drawer from 'expo-router/drawer';
 import { NDKCashuWallet } from '@nostr-dev-kit/ndk-wallet';
 
@@ -33,9 +30,6 @@ export default function ReceiveEcash({ onReceived }: { onReceived: () => void })
             return;
         }
 
-        console.log('receive', token);
-        console.log('crypto', crypto);
-
         (defaultWallet as NDKCashuWallet).receiveToken(token)
             .then((result) => {
                 console.trace(result);
@@ -53,7 +47,7 @@ export default function ReceiveEcash({ onReceived }: { onReceived: () => void })
 
     return (
         <View style={styles.container}>
-            <Drawer.Screen options={{ title: 'Send' }} />
+            <Drawer.Screen options={{ title: 'Receive' }} />
             <CameraView 
                  barcodeScannerSettings={{
                     barcodeTypes: ["qr"],

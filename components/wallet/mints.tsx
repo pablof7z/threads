@@ -17,7 +17,7 @@ export default function Mints({ wallet }: MintsProps) {
             const url = new URL(mint);
             const hostname = url.hostname;
             const shade = Math.floor((255 / Object.keys(mintBalances).length) * index);
-            const color = `rgb(${shade}, ${shade}, ${shade})`;
+            const color = `rgb(${255 - shade}, ${shade / 2}, ${155 + shade / 3})`;
             return {
                 name: hostname,
                 balance,

@@ -1,17 +1,20 @@
 import React, { useEffect, useCallback, useState } from "react";
 import { StyleSheet, TouchableOpacity, Alert, ScrollView, View } from "react-native";
 import { useNDKWallet } from "@/ndk-expo/providers/wallet";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useNDK } from "@/ndk-expo";
 import { Text } from "@/components/nativewindui/Text";
 import { NDKCashuWallet } from "@nostr-dev-kit/ndk-wallet";
 import Wallet from "@/components/wallet";
-import { SafeAreaFrameContext, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { walleteStore } from "../stores";
+import { useStore } from "zustand";
 
 export default function WalletScreen() {
     const { currentUser } = useNDK();
-    const { wallets, defaultWallet } = useNDKWallet();
+    const { defaultWallet } = useNDKWallet();
     const router = useRouter();
+    const { activeWallet } = useStore(walleteStore)
 
     const setWalletParams = useCallback(
         (walletName: string) => {
@@ -26,22 +29,16 @@ export default function WalletScreen() {
         }
     }, [defaultWallet, setWalletParams]);
 
-    useEffect(() => {
-        if (!currentUser) {
-            // router.back();
-        }
-    }, [currentUser, router]);
-
     if (!currentUser) {
         return null;
     }
 
     return (
-        <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-card">
-            <View style={styles.container} className='bg-card'>
-                {defaultWallet ? (
+        <View className="flex-1 bg-card">
+            <View style={styles.container}>
+                {activeWallet ? (
                 <Wallet
-                    wallet={defaultWallet as NDKCashuWallet}
+                    wallet={activeWallet as NDKCashuWallet}
                 />
             ) : (
                 <TouchableOpacity style={styles.button} onPress={() => router.push({ pathname: '/new-wallet' })}>
@@ -50,7 +47,7 @@ export default function WalletScreen() {
             )}
             
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 

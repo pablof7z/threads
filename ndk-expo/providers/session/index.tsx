@@ -6,7 +6,6 @@ import {
     NDKEventId,
     NDKFilter,
     NDKKind,
-    NDKList,
     NDKSubscription,
 } from "@nostr-dev-kit/ndk";
 import { PropsWithChildren, useEffect, useState } from "react";

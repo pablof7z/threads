@@ -3,6 +3,9 @@ import { NDKEvent } from "@nostr-dev-kit/ndk";
 import { useEffect, useState } from "react";
 import { Checkbox } from '~/components/nativewindui/Checkbox';
 import { StyleSheet, TouchableWithoutFeedback, View, Text } from "react-native";
+import { ListItem } from "@/components/nativewindui/List";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { cn } from "@/lib/cn";
 
 const MintListItem = ({ item, selected, onSelect }: { item: NDKEvent, selected: boolean, onSelect: (selected: boolean) => void }) => {
     const [mintInfo, setMintInfo] = useState<GetInfoResponse | null>(null);
@@ -28,6 +31,24 @@ const MintListItem = ({ item, selected, onSelect }: { item: NDKEvent, selected: 
     }
 
     return (
+        <ListItem
+            className={cn(
+                'ios:pl-0 pl-2'
+            )}
+            titleClassName="text-lg"
+            rightView={(
+                <TouchableOpacity onPress={item.fn}>
+                    <Text className="text-primary pr-4 mt-2">Add</Text>
+                </TouchableOpacity>
+            )}
+            item={{
+                title: mintInfo?.name??url,
+                subTitle: mintInfo?.description ?? ""
+            }}
+        >
+        </ListItem>
+    );
+    (
         <View style={styles.container}>
             <Checkbox
                 checked={isChecked}

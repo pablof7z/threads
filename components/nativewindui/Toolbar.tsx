@@ -18,6 +18,7 @@ type ToolbarProps = Omit<ViewProps, 'children' | 'style'> & {
   leftView?: React.ReactNode;
   rightView?: React.ReactNode;
   iosHint?: string;
+  children?: React.ReactNode;
   iosBlurIntensity?: number;
 };
 
@@ -25,6 +26,7 @@ function Toolbar({
   leftView,
   rightView,
   iosHint,
+  children,
   className,
   iosBlurIntensity = 60,
   ...props
@@ -45,6 +47,7 @@ function Toolbar({
       {Platform.OS === 'ios' && !iosHint ? (
         <>
           {leftView}
+          {children}
           {rightView}
         </>
       ) : (

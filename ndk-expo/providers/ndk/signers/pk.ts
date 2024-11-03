@@ -9,5 +9,4 @@ export async function withPayload(ndk: NDK, payload: string): Promise<NDKSigner 
     if (payload.startsWith("nsec1")) return withPrivateKey(payload);
 
     return withNip46(ndk, payload);
-    
 }

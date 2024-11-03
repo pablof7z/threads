@@ -24,10 +24,10 @@ export default function Tokens({ wallet }: TokensProps) {
     }, [tokens]);
 
     const chartData = useMemo(() => {
-        console.log({tokensByValue});
         return Object.entries(tokensByValue).map(([amount, count], index) => {
             const shade = Math.floor((255 / Object.keys(tokensByValue).length) * index);
-            const color = `rgb(${shade}, ${shade}, ${shade})`;
+            const color = `rgb(${255 - shade}, ${shade / 2}, ${155 + shade / 3})`;
+                                                                        
             return {
                 amount,
                 count,
