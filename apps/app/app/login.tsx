@@ -4,12 +4,9 @@ import { useNDK } from "@/ndk-expo";
 import { Stack, useRouter } from "expo-router";
 import { NDKPrivateKeySigner } from "@nostr-dev-kit/ndk";
 import { nip19 } from "nostr-tools";
-import { withPrivateKey, withPayload, withNip46 } from "@/ndk-expo/providers/ndk/signers";
 import { Text } from "@/components/nativewindui/Text";
-import { useTheme } from "@react-navigation/native";
 import { useNDKWallet } from "@/ndk-expo/providers/wallet";
 import { Button } from "@/components/nativewindui/Button";
-import * as SecureStore from 'expo-secure-store';
 
 export default function LoginScreen() {
     const [payload, setPayload] = useState(
@@ -32,15 +29,14 @@ export default function LoginScreen() {
 
     useEffect(() => {
         if (currentUser && walletService) {
-            // setTimeout(() => router.replace("/(wallets)"), 500);
+            router.replace("/");
         }
     }, [ currentUser, walletService ])
 
     const createAccount = async () => {
         const signer = NDKPrivateKeySigner.generate();
-        await loginWithPayload(signer.privateKey!, { save: true });
-
-        const payload = nip19.nsecEncode(signer._privateKey!)
+        const nsec = nip19.nsecEncode(signer._privateKey!)
+        await loginWithPayload(nsec, { save: true });
 
         router.replace("/")
     }

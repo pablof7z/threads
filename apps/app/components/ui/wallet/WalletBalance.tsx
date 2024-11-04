@@ -1,5 +1,6 @@
 import { Dimensions, StyleSheet, Touchable, TouchableNativeFeedback, View } from "react-native";
 import { Text } from "@/components/nativewindui/Text";
+import { prettifySatoshis } from "@/lib/utils";
 
 interface WalletBalanceProps {
     balance: number;
@@ -15,7 +16,7 @@ export default function WalletBalance({
     return (
         <TouchableNativeFeedback onPress={onPress}>
             <View style={styles.balanceContainer}>
-                <Text style={styles.balance}>{balance}</Text>
+                <Text style={styles.balance}>{prettifySatoshis(balance)}</Text>
                 <Text style={styles.unit}>{unit}</Text>
             </View>
         </TouchableNativeFeedback>

@@ -1,21 +1,15 @@
 import "react-native-get-random-values";
 import "@bacons/text-decoder/install";
-import { PropsWithChildren, useEffect, useRef, useState } from "react";
+import { PropsWithChildren, useEffect, useMemo, useRef, useState } from "react";
 import NDK, { NDKConstructorParams, NDKEvent, NDKSigner, NDKUser } from "@nostr-dev-kit/ndk";
-import { create, StoreApi, UseBoundStore } from 'zustand';
 import NDKContext from "@/ndk-expo/context/ndk";
 import * as SecureStore from 'expo-secure-store';
 import { withPayload } from "./signers";
 
-interface UnpublishedEvent {
+export interface UnpublishedEventEntry {
     event: NDKEvent;
     relays?: string[];
     lastTryAt?: number;
-}
-
-interface IUnpublishedEventStore {
-    unpublishedEvents: UnpublishedEvent[];
-    addEntry: (entry: UnpublishedEvent) => void;
 }
 
 const NDKProvider = ({
@@ -31,35 +25,30 @@ const NDKProvider = ({
         ...opts
     }));
     const [currentUser, setCurrentUser] = useState<NDKUser | null>(null);
-    const useUnpublishedEventStore = create<IUnpublishedEventStore>((set) => ({
-        unpublishedEvents: [],
-        setEntries: (entries: UnpublishedEvent[]) => set({ unpublishedEvents: entries }),
-        addEntry: (entry: UnpublishedEvent) => set((state) => {
-            console.log('calling into add event to add', entry.event.id)
-            const { unpublishedEvents } = state;
-            if (!unpublishedEvents.find(e => e.event.id === entry.event.id))
-                unpublishedEvents.push(entry);
-            
-            console.log('unpublishedEvents.length = '+unpublishedEvents.length)
-            
-            return { unpublishedEvents };
+    const [unpublishedEvents, setUnpublishedEvents] = useState<Map<string, UnpublishedEventEntry>>(new Map());
+        
+    useEffect(() => {
+        ndk.current.cacheAdapter?.getUnpublishedEvents?.().then(entries => {
+            const e = new Map<string, UnpublishedEventEntry>();
+            entries.forEach((entry) => {
+                e.set(entry.event.id, entry);
+            });
+            setUnpublishedEvents(e);
         })
-    }));
-    const addEntry = useUnpublishedEventStore(store => store.addEntry);
-    const setEntries = useUnpublishedEventStore(store => store.setEntries);
-
-    ndk.current.cacheAdapter?.getUnpublishedEvents?.().then(entry => {
-        setEntries(entry);
-    })
+    }, [])
 
     if (connect) {
         ndk.current.connect();
     }
 
     ndk.current.on("event:publish-failed", (event: NDKEvent) => {
-        console.log
-        addEntry({event});
-        event.once("published", () => console.log('event published', event.id))
+        if (unpublishedEvents.has(event.id)) return;
+        unpublishedEvents.set(event.id, { event })
+        setUnpublishedEvents(unpublishedEvents)
+        event.once("published", () => {
+            unpublishedEvents.delete(event.id)
+            setUnpublishedEvents(unpublishedEvents)
+        });
     })
 
     useEffect(() => {
@@ -103,6 +92,10 @@ const NDKProvider = ({
 
     async function logout() {
         ndk.current.signer = undefined;
+
+        setCurrentUser(null);
+
+        SecureStore.deleteItemAsync("key");
     }
 
     return (
@@ -113,7 +106,7 @@ const NDKProvider = ({
                 loginWithPayload,
                 logout,
                 currentUser,
-                useUnpublishedEventStore
+                unpublishedEvents
             }}
         >
             {children}

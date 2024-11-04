@@ -30,11 +30,14 @@ type UnpublishedEventRecord = EventRecord & {
     last_try_at: number;
 }
 
+type PendingCallback = (...arg: any) => any;
+
 export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
     readonly dbName: string;
     private db: SQLite.SQLiteDatabase;
     locking: boolean = false;
     ready: boolean = false;
+    private pendingCallbacks: PendingCallback[] = [];
 
     constructor(dbName: string) {
         this.dbName = dbName ?? "ndk-cache";
@@ -110,11 +113,10 @@ export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
 
         console.log("SQLiteCacheAdapter initialized", Date.now() - start, "ms");
 
-        const unpublishedEventCount = this.db.getAllSync(`SELECT COUNT(*) FROM unpublished_events;`);
-        console.log('unpublished event count', unpublishedEventCount);
-
         this.ready = true;
         this.locking = true;
+
+        Promise.all(this.pendingCallbacks.map(f => f()));
     }
 
     async query(subscription: NDKSubscription): Promise<void> {
@@ -208,27 +210,35 @@ export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
         console.log(`Add unpublished event`, {kind: event.kind, id: event.id});
         
         try {
-        this.db.runSync(
-            `INSERT OR REPLACE INTO unpublished_events (id, event, relays, last_try_at) VALUES (?, ?, ?, ?);`,
-            [
-                event.id,
-                event.serialize(true, true),
-                (relayUrls ?? []).join(','),
-                Date.now()
-            ]
-        );
-    } catch (e) {
-        console.error('error adding unpublished event', e)
-    }
+            this.db.runSync(
+                `INSERT OR REPLACE INTO unpublished_events (id, event, relays, last_try_at) VALUES (?, ?, ?, ?);`,
+                [
+                    event.id,
+                    event.serialize(true, true),
+                    (relayUrls ?? []).join(','),
+                    Date.now()
+                ]
+            );
+        } catch (e) {
+            console.error('error adding unpublished event', e)
+        }
     }
 
     async getUnpublishedEvents(): Promise<{ event: NDKEvent; relays?: WebSocket["url"][]; lastTryAt?: number; }[]> {
-        console.log(`getting unpublishd events`);
+        const call = () => this._getUnpublishedEvents();
+        
+        if (!this.ready) {
+            return new Promise((resolve, reject) => {
+                this.pendingCallbacks.push(() => call().then(resolve).catch(reject));
+            })
+        } else {
+            return call();
+        }
+    }
 
+    async _getUnpublishedEvents(): Promise<{ event: NDKEvent; relays?: WebSocket["url"][]; lastTryAt?: number; }[]> {
         const events = await (this.db.getAllAsync(`SELECT * FROM unpublished_events`)) as UnpublishedEventRecord[];
         return events.map(event => {
-            console.log('unpublished event', {event});
-
             const deserializedEvent = new NDKEvent(undefined, deserialize(event.event));
             return {
                 event: deserializedEvent,
@@ -239,9 +249,8 @@ export class NDKCacheAdapterSqlite implements NDKCacheAdapter {
     }
 
     discardUnpublishedEvent(eventId: NDKEventId): void {
+        this.db.runAsync(`DELETE FROM unpublished_events WHERE id = ?;`, [eventId]);
     }
-
-
 }
 
 export function foundEvents(

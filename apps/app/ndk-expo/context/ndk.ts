@@ -9,11 +9,7 @@ import NDK, {
 } from "@nostr-dev-kit/ndk";
 import { createContext } from "react";
 import { StoreApi } from "zustand";
-
-interface IUnpublishedEventStore {
-    unpublishedEvents: NDKEvent[];
-    addEvent: (event: NDKEvent) => void;
-}
+import { UnpublishedEventEntry } from "../providers/ndk";
 
 interface NDKContext {
     ndk: NDK | undefined;
@@ -21,7 +17,7 @@ interface NDKContext {
     login: (promise: Promise<NDKSigner | null>) => Promise<void>;
     loginWithPayload: (payload: string, { save }: { save?: boolean } ) => Promise<void>;
     logout: () => Promise<void>;
-    useUnpublishedEventStore: StoreApi<IUnpublishedEventStore> | undefined;
+    unpublishedEvents: Map<string, UnpublishedEventEntry>;
 
     currentUser: NDKUser | null;
 }
@@ -32,9 +28,8 @@ const NDKContext = createContext<NDKContext>({
     loginWithPayload: () => Promise.resolve(undefined),
     logout: () => Promise.resolve(undefined),
 
-    useUnpublishedEventStore: undefined,
-    
     currentUser: null,
+    unpublishedEvents: new Map()
 });
 
 export default NDKContext;

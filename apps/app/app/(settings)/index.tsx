@@ -22,7 +22,7 @@ import { router } from 'expo-router';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function SettingsIosStyleScreen() {
-  const { currentUser } = useNDK();
+  const { currentUser, logout } = useNDK();
 
   const data = useMemo(() => {
     return [
@@ -39,11 +39,21 @@ export default function SettingsIosStyleScreen() {
         onPress: () => router.push('/(settings)/key')
       },
       'gap 3',
+      // {
+      //   id: '3',
+      //   title: 'Notifications',
+      //   leftView: <IconView name="bell-outline" className="bg-destructive" />,
+      // },
+      // 'gap 4',
       {
-        id: '3',
-        title: 'Notifications',
-        leftView: <IconView name="bell-outline" className="bg-destructive" />,
-      },
+        id: '4',
+        title: 'Logout',
+        leftView: <IconView name="send-outline" className="bg-destructive" />,
+        onPress: () => {
+          logout();
+          router.replace('/');
+        }
+      }
       
     ]
   }, [currentUser]);

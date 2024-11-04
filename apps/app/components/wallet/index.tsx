@@ -24,7 +24,7 @@ export default function Wallet({ wallet }: WalletProps) {
     return (
         <>
         <ScrollView style={styles.container}>
-            <View style={{ flex: 1, alignContent: 'center', justifyContent: 'center', minHeight: Dimensions.get('window').height * 0.6 }}>
+            <View style={{ flex: 1, alignContent: 'center', justifyContent: 'center', minHeight: Dimensions.get('window').height * 0.4 }}>
                 <Balance wallet={wallet} />
                 <Buttons wallet={wallet} />
             </View>

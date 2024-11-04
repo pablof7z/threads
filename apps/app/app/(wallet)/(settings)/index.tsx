@@ -1,7 +1,7 @@
 import { useNDK } from '@/ndk-expo';
 import { Icon, MaterialIconName } from '@roninoss/icons';
-import { useCallback, useMemo } from 'react';
-import { View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import * as User from '@/ndk-expo/components/user';
 
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/nativewindui/Avatar';
@@ -22,6 +22,7 @@ import { router } from 'expo-router';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { walleteStore } from '@/app/stores';
 import { useStore } from 'zustand';
+import { TextInput } from 'react-native-gesture-handler';
 
 export default function SettingsIosStyleScreen() {
     const { ndk, currentUser } = useNDK();
@@ -54,6 +55,17 @@ export default function SettingsIosStyleScreen() {
             }
         }
     }, [activeWallet])
+  
+  const [validating, setValidating] = useState<boolean | "validated">(false);
+
+  const validateTokens = useCallback(async () => {
+    setValidating(true);
+    await activeWallet?.checkProofs();
+    setValidating("validated");
+    setTimeout(() => {
+      setValidating(false);
+    }, 1000)
+  }, [activeWallet])
 
   const data = useMemo(() => {
     return [
@@ -74,6 +86,10 @@ export default function SettingsIosStyleScreen() {
         id: '4',
         title: 'Validate Tokens',
         leftView: <IconView name="magnify" className="bg-destructive" />,
+        rightView: validating === 'validated' ? (
+            <Icon name="check" />
+        ) : validating ? <ActivityIndicator /> : <></>,
+        onPress: validateTokens
       },
       {
         id: '5',
@@ -83,7 +99,7 @@ export default function SettingsIosStyleScreen() {
       },
       
     ]
-  }, [currentUser]);
+  }, [currentUser, validating]);
   
   return (
     <>
@@ -120,19 +136,23 @@ function renderItem<T extends (typeof data)[number]>(info: ListRenderItemInfo<T>
       leftView={info.item.leftView}
       rightView={
         <View className="flex-1 flex-row items-center justify-center gap-2 px-4">
-          {info.item.rightText && (
-            <Text variant="callout" className="ios:px-0 text-muted-foreground px-2">
-              {info.item.rightText}
-            </Text>
+          {info.item.rightView ? info.item.rightView : (
+            <>
+              {info.item.rightText && (
+                <Text variant="callout" className="ios:px-0 text-muted-foreground px-2">
+                  {info.item.rightText}
+                </Text>
+              )}
+            {info.item.badge && (
+              <View className="bg-destructive h-5 w-5 items-center justify-center rounded-full">
+                <Text variant="footnote" className="text-destructive-foreground font-bold leading-4">
+                  {info.item.badge}
+                </Text>
+              </View>
+            )}
+              <ChevronRight />
+            </>
           )}
-          {info.item.badge && (
-            <View className="bg-destructive h-5 w-5 items-center justify-center rounded-full">
-              <Text variant="footnote" className="text-destructive-foreground font-bold leading-4">
-                {info.item.badge}
-              </Text>
-            </View>
-          )}
-          <ChevronRight />
         </View>
       }
       {...info}

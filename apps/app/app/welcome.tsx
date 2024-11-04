@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '~/components/nativewindui/Button';
 import { Text } from '~/components/nativewindui/Text';
 import { useColorScheme } from '~/lib/useColorScheme';
-import * as SecureStore from 'expo-secure-store';
 import { useNDK } from '@/ndk-expo/hooks/ndk';
 import { useEffect } from 'react';
 import { useNDKWallet } from '@/ndk-expo/providers/wallet';

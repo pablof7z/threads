@@ -4,22 +4,26 @@ import { useNDKWallet } from "@/ndk-expo/providers/wallet";
 import { NDKEvent, NDKKind, NDKPrivateKeySigner, NDKRelaySet } from "@nostr-dev-kit/ndk";
 import { NDKCashuWallet, NDKWalletBalance, NDKWalletChange } from "@nostr-dev-kit/ndk-wallet";
 import { useEffect, useMemo, useState } from "react";
-import { Dimensions, FlatList, Pressable, StyleSheet, View } from "react-native";
+import { Dimensions, FlatList, Pressable, StyleSheet, TouchableHighlight, View } from "react-native";
+import { useColorScheme } from '~/lib/useColorScheme';
 import RelativeTime from "./components/relative-time";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { walleteStore } from "./stores";
 import { useStore } from "zustand";
 import WelcomeConsentScreen from "./welcome";
 import { Button } from "@/components/nativewindui/Button";
+import { Icon } from "@roninoss/icons";
+import { prettifySatoshis } from "@/lib/utils";
+import {List} from "@/components/nativewindui/List";
 
 function WalletCard({ wallet }: { wallet: NDKCashuWallet }) {
     const [balance, setBalance] = useState<NDKWalletBalance[] | undefined>(undefined);
+    const { colors } = useColorScheme();
     const filters = useMemo(() => ([
         { limit: 1, kinds: [NDKKind.WalletChange, NDKKind.CashuToken], authors: [wallet.event.pubkey], ...wallet.event.filter() }
     ]), [wallet.event]);
     const { events } = useSubscribe({filters});
     const { setActiveWallet } = useStore(walleteStore)
-    const { currentUser } = useNDK();
 
     useEffect(() => {
         wallet.balance().then((b) => setBalance(b));
@@ -34,19 +38,16 @@ function WalletCard({ wallet }: { wallet: NDKCashuWallet }) {
         }
     }, [wallet]);
 
-    if (!currentUser) {
-        return <WelcomeConsentScreen />
-    }
-    
     return (
         <Pressable onPress={() => {
             setActiveWallet(wallet);
             router.push(`/(wallet)`);
         }}>
-            <View style={styles.card}>
+            <View style={{...styles.card, backgroundColor: colors.primary}}>
                 <Text style={styles.title}>{wallet.name ?? 'Untitled'}</Text>
                 <Text style={styles.balance}>
-                    {balance?.[0]?.amount} <Text style={styles.currency}>{balance?.[0]?.unit}</Text>
+                    {balance?.[0]?.amount ? prettifySatoshis(balance?.[0]?.amount, 0) : '0'}
+                    <Text style={styles.currency}>{balance?.[0]?.unit}</Text>
                 </Text>
                 <View className="flex-row items-center gap-1">
                     <Text className="text-sm text-white">
@@ -83,7 +84,7 @@ function TransactionItem({ event }: { event: NDKEvent }) {
     if (event.kind === NDKKind.WalletChange) {
         if (!change) return <Text>Loading...</Text>;
         else return (
-            <View className="flex-row items-start gap-1 w-full mb-4">
+            <View key={event.id} className="flex-row items-start gap-1 w-full mb-4">
                 <View className="flex-1">
                     <Text className="text-xs text-gray-500">
                         {change.mint}
@@ -111,48 +112,63 @@ function TransactionList() {
         <View className="flex-1 bg-card gap-2 w-full p-4">
             <Text className="text-3xl font-bold">Transactions</Text>
 
-            <View className="flex-1">
-                {events?.map((e) => <TransactionItem event={e} />)}
-            </View>
+            <List
+                data={events}
+                keyExtractor={(item) => item.id}
+                estimatedItemSize={50}
+                renderItem={(item) => (
+                    <TransactionItem event={item} />
+                )}
+            />
         </View>
     );
 }
 
 export default function WalletsScreen() {
     const { walletService } = useNDKWallet();
-    const { ndk } = useNDK();
+    const { ndk, currentUser } = useNDK();
+    const { colors } = useColorScheme();
+    const { setActiveWallet } = useStore(walleteStore)
     const wallets = useMemo(() => (
         ((walletService?.wallets as NDKCashuWallet[])||[])
         .sort((a, b) => b.tokens.length - a.tokens.length)
     ), [walletService?.wallets]);
 
+    if (!currentUser) {
+        return <WelcomeConsentScreen />
+    }
 
+    const newWallet = async () => {
+        const wallet = new NDKCashuWallet(ndk!);
+        wallet.name = 'New Wallet';
+        wallet.relays = (ndk?.pool.connectedRelays() || []).map((r) => r.url);
+        await wallet.publish();
+
+        setActiveWallet(wallet);
+
+        router.push('/(wallet)/')
+        setTimeout(() => router.push('/(wallet)/(settings)'), 100);
+    }
 
     return (
         <View className="flex-1 bg-card gap-2">
             <FlatList
                 horizontal
-                data={wallets}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => <WalletCard wallet={item} />}
+                data={[...wallets, {id: 'new-wallet'}]}
+                keyExtractor={(item) => item.event?.id ?? item.id}
+                renderItem={({ item }) => (
+                    item.id === 'new-wallet' ? (
+                        <TouchableHighlight onPress={newWallet} style={{...styles.card, backgroundColor: colors.grey4}}>
+                            <Icon name="plus-box-outline" size={24} color={colors.foreground} />
+                        </TouchableHighlight>
+                    ) : (
+                        <WalletCard wallet={item} />
+                    )
+                )}
                 contentContainerStyle={styles.listContainer}
                 style={{ height: 240, flexGrow: 0 }}
             />
 
-            <Button onPress={(async () => {
-                const relaySet = NDKRelaySet.fromRelayUrls(['ws://localhost:2929'], ndk);
-                const e = new NDKEvent(ndk, {kind: 9});
-                const key = NDKPrivateKeySigner.generate();
-                e.sign(key);
-                try {
-                    await e.publish(relaySet);
-                    alert('ok')
-                } catch (e) {
-                    alert(e)
-                }
-            })}>
-                <Text>Publish</Text>
-            </Button>
             <TransactionList />
         </View>
     );
@@ -160,14 +176,9 @@ export default function WalletsScreen() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#439AcF',
     paddingVertical: 20,
     paddingHorizontal: 25,
     borderRadius: 15,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
     elevation: 4,
     alignItems: 'flex-start',
     marginVertical: 10,

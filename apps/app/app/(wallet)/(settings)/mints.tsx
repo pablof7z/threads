@@ -1,6 +1,6 @@
 import { useNDK, useSubscribe } from '@/ndk-expo';
 import { Icon, MaterialIconName } from '@roninoss/icons';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, View } from 'react-native';
 
 import { LargeTitleHeader } from '~/components/nativewindui/LargeTitleHeader';
@@ -15,13 +15,11 @@ import {
 import { Text } from '~/components/nativewindui/Text';
 import { cn } from '~/lib/cn';
 import { useColorScheme } from '~/lib/useColorScheme';
-import { NDKKind, NDKRelay, NDKRelayStatus, NDKUser } from '@nostr-dev-kit/ndk';
 import { walleteStore } from '@/app/stores';
 import { useStore } from 'zustand';
 import { TextInput, TouchableOpacity } from 'react-native-gesture-handler';
 import { router } from 'expo-router';
-import { Button } from '@/components/nativewindui/Button';
-import MintListItem from '@/components/cashu/mint/list/item';
+import { CashuMint, GetInfoResponse } from '@cashu/cashu-ts';
 
 export default function RelaysScreen() {
     const { ndk } = useNDK();
@@ -33,17 +31,7 @@ export default function RelaysScreen() {
     const filter = useMemo(() => ([{ kinds: [38172], limit: 50 }]), [1]);
     const opts = useMemo(() => ({ groupable: false, closeOnEose: true, subId: 'mints' }), []);
     const { events: mintList } = useSubscribe({ filters: filter, opts });
-
-    const data = useMemo(() => {
-        if (!ndk || !activeWallet) return []
-        const regexp = new RegExp(/${searchText}/i)
-
-        return mints.map(mint => ({
-            id: mint,
-            title: mint,
-        }))
-        .filter(item => (searchText??'').trim().length === 0 || item.title.match(regexp!))
-  }, [mints, searchText]);
+    const [mintInfos, setMintInfos] = useState<Record<string, GetInfoResponse | null>>({});
 
     const addFn = () => {
         try {
@@ -58,6 +46,40 @@ export default function RelaysScreen() {
             alert("Invalid URL")
         }
     };
+
+    const data = useMemo(() => {
+        if (!ndk || !activeWallet) return []
+        const regexp = new RegExp(/${searchText}/i)
+
+        const m = mints.map(mint => ({
+            id: mint,
+            title: mint,
+            removeFn: () => removeMint(mint),
+        }))
+        .filter(item => (searchText??'').trim().length === 0 || item.title.match(regexp!))
+
+        m.push({ id: 'add', addFn: addFn, set: setUrl })
+
+        for (const event of mintList) {
+            const url = event.tagValue("u");
+            if (!url || mints.includes(url)) continue;
+            const niceUrl = new URL(url).hostname;
+
+            // if (mintInfos[url] === undefined) {
+            //     setMintInfos({...mintInfos, [url]: null});
+            //     CashuMint.getInfo(url).then(info => setMintInfos({...mintInfos, [url]: info}));
+            // }
+
+            m.push({
+                id: url,
+                title: mintInfos[url]?.name ?? niceUrl,
+                subTitle: url,
+                addFn: () => addMint(url),
+            })
+        }
+        
+        return m;
+  }, [mintList, mints, searchText, mintInfos]);
 
     const save = () => {
         if (!activeWallet) return;
@@ -94,14 +116,15 @@ export default function RelaysScreen() {
             </TouchableOpacity>
           )}
         />
+            <Text>here {data.length}</Text>
         <View className="flex-1">
             <List
                 contentContainerClassName="pt-4"
                 contentInsetAdjustmentBehavior="automatic"
                 variant="insets"
-                data={[...data, {id: 'add', fn: addFn, set: setUrl}, 'gap-2', ...unselectedMints]}
+                data={data}
                 estimatedItemSize={ESTIMATED_ITEM_HEIGHT.titleOnly}
-                renderItem={renderItem(addMint, removeMint)}
+                renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 sectionHeaderAsGap
             />
@@ -110,24 +133,23 @@ export default function RelaysScreen() {
   );
 }
 
-function renderItem(addMint, removeMint) {
-    return function renderItem<T extends (typeof data)[number]>(info: ListRenderItemInfo<T>) {
-        if (info.item.id === 'add') {
-            return (
-                <ListItem
-                    className={cn(
-                    'ios:pl-0 pl-2',
-                    info.index === 0 && 'ios:border-t-0 border-border/25 dark:border-border/80 border-t'
-                    )}
-                    titleClassName="text-lg"
-                    leftView={info.item.leftView}
-                    rightView={(
-                        <TouchableOpacity onPress={info.item.fn}>
-                            <Text className="text-primary pr-4 mt-2">Add</Text>
-                        </TouchableOpacity>
-                    )}
-                    {...info}
-                >
+function renderItem<T extends (typeof data)[number]>(info: ListRenderItemInfo<T>) {
+    if (info.item.id === 'add') {
+        return (
+            <ListItem
+                className={cn(
+                'ios:pl-0 pl-2',
+                info.index === 0 && 'ios:border-t-0 border-border/25 dark:border-border/80 border-t'
+                )}
+                titleClassName="text-lg"
+                leftView={info.item.leftView}
+                rightView={(
+                    <TouchableOpacity onPress={info.item.addFn}>
+                        <Text className="text-primary pr-4 mt-2">Add</Text>
+                    </TouchableOpacity>
+                )}
+                {...info}
+            >
                 <TextInput
                     className="flex-1 text-lg"
                     placeholder="Add mint"
@@ -135,30 +157,36 @@ function renderItem(addMint, removeMint) {
                     autoCapitalize="none"
                     autoCorrect={false}
                 />
-                </ListItem>
-            )
-        } else if (info.item.kind === 38172) {
-        }
-            return (
-                <ListItem
-                    className={cn(
-                        'ios:pl-0 pl-2',
-                        info.index === 0 && 'ios:border-t-0 border-border/25 dark:border-border/80 border-t'
-                    )}
-                    titleClassName="text-lg"
-                    leftView={info.item.leftView}
-                    rightView={(
-                        <TouchableOpacity onPress={info.item.fn}>
-                            <Text className="text-neutral pr-4 mt-2">
-                                <Icon name="trash-can-outline" size={20} />
+            </ListItem>
+        )
+    } else if (info.item.kind === 38172) {
+    }
+        return (
+            <ListItem
+                className={cn(
+                    'ios:pl-0 pl-2',
+                    info.index === 0 && 'ios:border-t-0 border-border/25 dark:border-border/80 border-t'
+                )}
+                titleClassName="text-lg"
+                leftView={info.item.leftView}
+                rightView={(
+                    (info.item.addFn ? (
+                        <TouchableOpacity onPress={info.item.addFn}>
+                            <Text className="text-primary pr-4 mt-2">
+                                Add
                             </Text>
                         </TouchableOpacity>
-                    )}
-                    {...info}
-                    onPress={() => console.log('onPress')}
-                />
-        );
-    }
+                    ) : (
+                        <TouchableOpacity onPress={info.item.removeFn}>
+                            <Text className="text-primary pr-4 mt-2">
+                                Remove
+                            </Text>
+                        </TouchableOpacity>
+                    ))
+                )}
+                {...info}
+            />
+    );
 }
 
 function ChevronRight() {

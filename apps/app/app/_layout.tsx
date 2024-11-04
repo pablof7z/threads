@@ -9,7 +9,6 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';  
 import { Platform, View, SafeAreaView, Pressable, TouchableOpacity } from 'react-native';
-import { ActivityIndicator } from '~/components/nativewindui/ActivityIndicator';
 
 import { useColorScheme, useInitialAndroidBarSync } from '~/lib/useColorScheme';
 import { NAV_THEME } from '~/theme';
@@ -26,43 +25,18 @@ export {
 } from 'expo-router';
 
 function UnpublishedEventIndicator() {
-    const { ndk, useUnpublishedEventStore } = useNDK();
-    const unpublishedEvents = useUnpublishedEventStore ? useUnpublishedEventStore(store => store.unpublishedEvents) : [];
-    const [publishing, setPublishing] = useState(false);
+    const { ndk, unpublishedEvents } = useNDK();
 
-    // if (unpublishedEvents.length === 0) return null;
-
-    async function publish() {
-        if (!ndk) return;
-        setPublishing(true);
-
-        for (let e of unpublishedEvents) {
-            await e.publish();
-            break;
-        }
-
-        setPublishing(false);
-    }
+    if (unpublishedEvents.size === 0) return null;
 
     return (
-        <TouchableOpacity onPress={() => {
-            if (!ndk) return;
-
-            const signer = NDKPrivateKeySigner.generate();
-            const e = new NDKEvent(ndk, { kind: 9 } as NostrEvent);
-            const relay = NDKRelaySet.fromRelayUrls(['wss://relay1.com'], ndk)
-
-            e.sign(signer).then(() => {e.publish(relay).catch(console.log)});
-        }}>
-            <TouchableOpacity onPress={publish}>
-                <View className='bg-red-500 px-2 py-1 rounded-md'>
-                    <Text className="text-white text-xs">
-                        {unpublishedEvents.length}
-                    </Text>
-                </View>
-            </TouchableOpacity>
-            {(publishing && unpublishedEvents.length > 0) && <ActivityIndicator />}
-        </TouchableOpacity>
+        <Link href="/unpublished">
+            <View className='bg-red-500 px-2 py-1 rounded-md'>
+                <Text className="text-white text-xs">
+                    {unpublishedEvents.size}
+                </Text>
+            </View>
+        </Link>
     )
 }
 
@@ -105,8 +79,8 @@ export default function RootLayout() {
                                         ),
                                         headerTitle: () => <Text>Wallets</Text>,
                                         headerRight: () => (
-                                            <Link href="/new-wallet">
-                                                <Icon name="plus-box-outline" size={24} color={colors.foreground} />
+                                            <Link href="/(settings)">
+                                                <Icon name="cog-outline" size={24} color={colors.foreground} />
                                             </Link>
                                         )
                                     }} />
@@ -119,6 +93,11 @@ export default function RootLayout() {
                                     
                                     {/* <Stack.Screen name="(settings)" options={SETTINGS_OPTIONS} /> */}
                                     <Stack.Screen name="login" options={LOGIN_OPTIONS} />
+                                    <Stack.Screen name="unpublished" options={{
+                                        presentation: 'modal',
+                                        title: 'Unpublished data',
+                                    }} />
+
                                     <Stack.Screen name="new-wallet" options={{
                                         presentation: 'modal',
                                         title: 'New Wallet',
