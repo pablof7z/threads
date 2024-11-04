@@ -25,37 +25,35 @@ export default function SettingsIosStyleScreen() {
   const { currentUser, logout } = useNDK();
 
   const data = useMemo(() => {
-    return [
+    const opts = [
       {
         id: '2',
         title: 'Relays',
         leftView: <IconView name="wifi" className="bg-blue-500" />,
         onPress: () => router.push('/(settings)/relays')
-      },
-      {
-        id: '11',
-        title: 'Key',
-        leftView: <IconView name="key-outline" className="bg-gray-500" />,
-        onPress: () => router.push('/(settings)/key')
-      },
-      'gap 3',
-      // {
-      //   id: '3',
-      //   title: 'Notifications',
-      //   leftView: <IconView name="bell-outline" className="bg-destructive" />,
-      // },
-      // 'gap 4',
-      {
-        id: '4',
-        title: 'Logout',
-        leftView: <IconView name="send-outline" className="bg-destructive" />,
-        onPress: () => {
-          logout();
-          router.replace('/');
-        }
       }
-      
-    ]
+    ];
+
+    if (currentUser) {
+        opts.push({
+            id: '11',
+            title: 'Key',
+            leftView: <IconView name="key-outline" className="bg-gray-500" />,
+            onPress: () => router.push('/(settings)/key')
+        });
+        opts.push('gap 3');
+        opts.push({
+            id: '4',
+            title: 'Logout',
+            leftView: <IconView name="send-outline" className="bg-destructive" />,
+            onPress: () => {
+              router.replace('/');
+              logout();
+            }
+        })
+    }
+
+    return opts;
   }, [currentUser]);
 
   return (

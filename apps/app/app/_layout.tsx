@@ -91,7 +91,7 @@ export default function RootLayout() {
                                     }} />
 
                                     
-                                    {/* <Stack.Screen name="(settings)" options={SETTINGS_OPTIONS} /> */}
+                                    <Stack.Screen name="(settings)" options={SETTINGS_OPTIONS} />
                                     <Stack.Screen name="login" options={LOGIN_OPTIONS} />
                                     <Stack.Screen name="unpublished" options={{
                                         presentation: 'modal',
@@ -118,6 +118,12 @@ const LOGIN_OPTIONS = {
   headerShown: false,
   animation: 'fade_from_bottom', // for android
 } as const;
+
+const SETTINGS_OPTIONS = {
+    presentation: 'modal',
+    headerShown: false,
+    animation: 'fade_from_bottom', // for android
+  } as const;
 
 function SettingsIcon() {
     const { colors } = useColorScheme();
